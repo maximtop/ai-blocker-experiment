@@ -1,0 +1,253 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Visual Ad Detection Test</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            margin: 0;
+            padding: 20px;
+            background-color: #f5f5f5;
+        }
+
+        .container {
+            max-width: 1400px;
+            margin: 0 auto;
+        }
+
+        .header {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            padding: 30px;
+            border-radius: 12px;
+            margin-bottom: 30px;
+            text-align: center;
+        }
+
+        .header h1 {
+            margin: 0 0 10px 0;
+            font-size: 28px;
+        }
+
+        .header p {
+            margin: 0;
+            font-size: 14px;
+            opacity: 0.9;
+        }
+
+        .grid-container {
+            display: grid;
+            grid-template-columns: repeat(2, 1fr);
+            gap: 12px;
+            margin-bottom: 20px;
+        }
+
+        .social-post {
+            background: white;
+            padding: 12px;
+            border-radius: 6px;
+            border: 1px solid #e0e0e0;
+            position: relative;
+        }
+
+        .post-header {
+            display: flex;
+            align-items: center;
+            margin-bottom: 8px;
+        }
+
+        .avatar {
+            width: 28px;
+            height: 28px;
+            border-radius: 50%;
+            color: white;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-weight: bold;
+            font-size: 13px;
+        }
+
+        .post-info {
+            margin-left: 8px;
+        }
+
+        .post-author {
+            font-weight: bold;
+            font-size: 13px;
+        }
+
+        .post-meta {
+            font-size: 11px;
+            color: #65676b;
+        }
+
+        .post-text {
+            margin: 6px 0;
+            font-size: 13px;
+        }
+
+        .post-image {
+            width: 70%;
+            border-radius: 6px;
+            display: block;
+            margin: 0 auto;
+        }
+
+        .debug-marker {
+            position: absolute;
+            top: 8px;
+            right: 8px;
+            color: white;
+            font-size: 9px;
+            padding: 4px 8px;
+            border-radius: 4px;
+            font-weight: bold;
+        }
+
+        .debug-marker::before {
+            content: attr(data-label);
+        }
+
+        .debug-marker.should-block {
+            background: #ff4757;
+        }
+
+        .debug-marker.should-keep {
+            background: #2ed573;
+        }
+
+        .legend {
+            background: white;
+            padding: 20px;
+            border-radius: 8px;
+            border: 1px solid #e0e0e0;
+        }
+
+        .legend h3 {
+            margin: 0 0 15px 0;
+            font-size: 16px;
+        }
+
+        .legend-item {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            margin-bottom: 10px;
+            font-size: 13px;
+        }
+
+        .legend-badge {
+            padding: 4px 8px;
+            border-radius: 4px;
+            color: white;
+            font-weight: bold;
+            font-size: 10px;
+        }
+
+        .legend-badge.ad {
+            background: #ff4757;
+        }
+
+        .legend-badge.ok {
+            background: #2ed573;
+        }
+
+        @media (max-width: 1024px) {
+            .grid-container {
+                grid-template-columns: 1fr;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div class="header">
+            <div style="margin-bottom: 15px; display: flex; gap: 20px; justify-content: center;">
+                <a href="index.html" style="color: white; text-decoration: none; font-size: 14px; opacity: 0.9;">
+                    ← Back to Main Page
+                </a>
+                <span style="color: white; opacity: 0.5;">|</span>
+                <a href="debug.html" style="color: white; text-decoration: none; font-size: 14px; opacity: 0.9;">
+                    🔧 Debug Mode
+                </a>
+            </div>
+            <h1>📸 VISUAL AD DETECTION TEST</h1>
+            <p>Same HTML structure, different image content - AI vision should identify ads vs. non-ads</p>
+
+            <div style="margin-top: 20px; padding-top: 20px; border-top: 1px solid rgba(255, 255, 255, 0.2);">
+                <div style="display: flex; flex-direction: column; gap: 10px; font-size: 13px;">
+                    <div style="display: flex; align-items: center; gap: 10px;">
+                        <span class="legend-badge ad">VISUAL-AD</span>
+                        <span style="color: white; opacity: 0.95;">Should be blocked - Advertisement content detected by AI vision</span>
+                    </div>
+                    <div style="display: flex; align-items: center; gap: 10px;">
+                        <span class="legend-badge ok">VISUAL-OK</span>
+                        <span style="color: white; opacity: 0.95;">Should remain visible - Regular content without ads</span>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <div class="grid-container">
+            <!-- AD POST 1 - AI Course -->
+            <article class="social-post">
+                <div class="debug-marker should-block" data-label="VISUAL-AD"></div>
+                <div class="post-header">
+                    <div class="avatar" style="background: #4267B2;">TL</div>
+                    <div class="post-info">
+                        <div class="post-author">TechLearn Academy</div>
+                        <div class="post-meta">Sponsored · 2h</div>
+                    </div>
+                </div>
+                <p class="post-text">New course launching this week! 🚀</p>
+                <img src="public/ad-ai-course.png" alt="AI Course Advertisement" class="post-image">
+            </article>
+
+            <!-- NON-AD POST 1 - Landscape -->
+            <article class="social-post">
+                <div class="debug-marker should-keep" data-label="VISUAL-OK"></div>
+                <div class="post-header">
+                    <div class="avatar" style="background: #34a853;">NL</div>
+                    <div class="post-info">
+                        <div class="post-author">Nature Lover</div>
+                        <div class="post-meta">1h</div>
+                    </div>
+                </div>
+                <p class="post-text">Beautiful morning in the mountains ⛰️</p>
+                <img src="public/non-ad-landscape.png" alt="Mountain Landscape" class="post-image">
+            </article>
+
+            <!-- NON-AD POST 2 - Reading -->
+            <article class="social-post">
+                <div class="debug-marker should-keep" data-label="VISUAL-OK"></div>
+                <div class="post-header">
+                    <div class="avatar" style="background: #ea4335;">BR</div>
+                    <div class="post-info">
+                        <div class="post-author">Book Reader</div>
+                        <div class="post-meta">3h</div>
+                    </div>
+                </div>
+                <p class="post-text">Perfect reading spot 📚</p>
+                <img src="public/non-ad-reading.png" alt="Reading Under Tree" class="post-image">
+            </article>
+
+            <!-- AD POST 2 - iPhone -->
+            <article class="social-post">
+                <div class="debug-marker should-block" data-label="VISUAL-AD"></div>
+                <div class="post-header">
+                    <div class="avatar" style="background: #fbbc04;">MS</div>
+                    <div class="post-info">
+                        <div class="post-author">MegaStore</div>
+                        <div class="post-meta">Sponsored · 4h</div>
+                    </div>
+                </div>
+                <p class="post-text">Limited time offer! 🔥</p>
+                <img src="public/ad-iphone-discount.png" alt="iPhone Sale Advertisement" class="post-image">
+            </article>
+        </div>
+    </div>
+</body>
+</html>

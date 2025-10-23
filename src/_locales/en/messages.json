@@ -1,0 +1,67 @@
+{
+  "extensionName": {
+    "message": "AI AdBlocker",
+    "description": "Name of the extension"
+  },
+  "extensionDescription": {
+    "message": "Block advertisements using LLM embeddings and user-defined rules",
+    "description": "Description of the extension"
+  },
+  "ruleBasedBlocking": {
+    "message": "Rule-based blocking",
+    "description": "Subtitle in popup"
+  },
+  "ruleFormat": {
+    "message": "Rule format:",
+    "description": "Label for rule format help"
+  },
+  "blockingRules": {
+    "message": "Blocking rules:",
+    "description": "Label for rules list"
+  },
+  "addRulePlaceholder": {
+    "message": "div:contains('advertisement')",
+    "description": "Placeholder text for rule input"
+  },
+  "addButton": {
+    "message": "Add",
+    "description": "Add rule button text"
+  },
+  "emptyRules": {
+    "message": "Add rules to block advertisements",
+    "description": "Message when no rules are added"
+  },
+  "enterRule": {
+    "message": "Enter a rule",
+    "description": "Error message for empty rule input"
+  },
+  "invalidFormat": {
+    "message": "Invalid format. Use: selector:contains-meaning-embedding('text') or selector:contains-meaning-prompt('criteria')",
+    "description": "Error message for invalid rule format"
+  },
+  "ruleExists": {
+    "message": "This rule already exists",
+    "description": "Error message for duplicate rule"
+  },
+  "ruleAdded": {
+    "message": "Added rule: $RULE$",
+    "description": "Success message for added rule",
+    "placeholders": {
+      "rule": {
+        "content": "$1",
+        "example": "div:contains('ad')"
+      }
+    }
+  },
+  "ruleRemoved": {
+    "message": "Removed: $RULE$",
+    "description": "Success message for removed rule",
+    "placeholders": {
+      "rule": {
+        "content": "$1",
+        "example": "div:contains('ad')"
+      }
+    }
+  }
+}
+

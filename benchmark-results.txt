@@ -1,0 +1,410 @@
+----
+
+embeddings
+
+🔢 EMBEDDING ANALYSIS BENCHMARKS
+11:56:29.276 background.js:7745 ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+11:56:29.276 background.js:7748
+📈 openai/text-embedding-3-large:
+11:56:29.276 background.js:7749    Requests: 50
+11:56:29.276 background.js:7750    Average: 548.28ms
+11:56:29.276 background.js:7751    Min: 332.20ms
+11:56:29.276 background.js:7752    Max: 847.40ms
+11:56:29.276 background.js:7773    ℹ️  No token usage data available
+11:56:29.276 background.js:7774       (provider does not return usage info)
+🎯 ACCURACY METRICS (15 samples):
+11:56:29.277 background.js:7782    Overall Accuracy: 60.0%
+11:56:29.277 background.js:7783      - Correct: 9
+11:56:29.277 background.js:7784      - Incorrect: 6
+11:56:29.277 background.js:7785    Confusion Matrix:
+11:56:29.277 background.js:7787      - True Positives (Ad → Blocked): 1
+11:56:29.277 background.js:7789      - True Negatives (Non-Ad → Kept): 8
+11:56:29.277 background.js:7791      - False Positives (Non-Ad → Blocked): 0
+11:56:29.277 background.js:7793      - False Negatives (Ad → Kept): 6
+11:56:29.277 background.js:7797    Precision: 100.0%
+11:56:29.277 background.js:7798    Recall: 14.3%
+11:56:29.277 background.js:7799    F1 Score: 25.0%
+
+📈 lmstudio/text-embedding-qwen3-embedding-0.6b:
+11:56:29.278 background.js:7749    Requests: 50
+11:56:29.278 background.js:7750    Average: 62.14ms
+11:56:29.278 background.js:7751    Min: 36.20ms
+11:56:29.278 background.js:7752    Max: 202.90ms
+11:56:29.278 background.js:7773    ℹ️  No token usage data available
+11:56:29.279 background.js:7774       (provider does not return usage info)
+11:56:29.279 background.js:7780
+🎯 ACCURACY METRICS (15 samples):
+11:56:29.279 background.js:7782    Overall Accuracy: 100.0%
+11:56:29.279 background.js:7783      - Correct: 15
+11:56:29.279 background.js:7784      - Incorrect: 0
+11:56:29.279 background.js:7785    Confusion Matrix:
+11:56:29.279 background.js:7787      - True Positives (Ad → Blocked): 7
+11:56:29.279 background.js:7789      - True Negatives (Non-Ad → Kept): 8
+11:56:29.279 background.js:7791      - False Positives (Non-Ad → Blocked): 0
+11:56:29.279 background.js:7793      - False Negatives (Ad → Kept): 0
+11:56:29.279 background.js:7797    Precision: 100.0%
+11:56:29.279 background.js:7798    Recall: 100.0%
+11:56:29.279 background.js:7799    F1 Score: 100.0%
+
+OpenAI text-embedding-3-large Pricing
+Current rate: $0.00013 per 1,000 tokens
+
+Your Usage:
+Total tokens: 4,245 tokens
+Requests: 100
+Cost Calculation:
+4,245 tokens ÷ 1,000 × $0.00013 = $0.00055
+Total cost: ~$0.0006 (less than 0.1 cent)
+
+Cost Projections:
+For typical usage:
+
+1,000 requests (42 tokens avg) = $0.0055 (~half a cent)
+10,000 requests = $0.055 (~5.5 cents)
+100,000 requests = $0.55 (55 cents)
+1 million requests = $5.50
+Cost per Element:
+With average 42 tokens per request:
+
+Per element analyzed: ~$0.0000055 (0.00055 cents)
+This is extremely cheap for semantic analysis. Even analyzing 100 elements on a page costs less than 0.1 cent.
+
+Note: If you cache results (which the extension does), costs drop even further since repeated analyses use cached embeddings.
+
+----------------------------------------------------------------------------------------------------
+
+prompts
+
+
+📝 PROMPT ANALYSIS BENCHMARKS
+
+📈 openai/gpt-5-nano:
+11:44:48.444 background.js:7729    Requests: 50
+11:44:48.445 background.js:7730    Average: 4145.94ms
+11:44:48.445 background.js:7731    Min: 2848.20ms
+11:44:48.446 background.js:7732    Max: 7303.00ms
+11:44:48.446 background.js:7758    Total Tokens: 28167 (~28.2K)
+11:44:48.446 background.js:7759      - Input (prompt): 6725
+11:44:48.446 background.js:7760      - Output (completion): 21442
+11:44:48.446 background.js:7761    Avg Tokens/Request: 563
+11:44:48.446 background.js:7762      - Input: 134.5
+11:44:48.446 background.js:7763      - Output: 428.84
+11:44:48.446 background.js:7764    💰 Total Cost: $0.008913
+11:44:48.446 background.js:7765    💰 Avg Cost/Request: $0.000178
+11:44:48.447 background.js:7765
+🎯 ACCURACY METRICS (42 samples):
+11:44:48.447 background.js:7767    Overall Accuracy: 100.0%
+11:44:48.447 background.js:7768      - Correct: 42
+11:44:48.447 background.js:7769      - Incorrect: 0
+11:44:48.447 background.js:7770    Confusion Matrix:
+11:44:48.447 background.js:7772      - True Positives (Ad → Blocked): 21
+11:44:48.448 background.js:7774      - True Negatives (Non-Ad → Kept): 21
+11:44:48.448 background.js:7776      - False Positives (Non-Ad → Blocked): 0
+11:44:48.448 background.js:7778      - False Negatives (Ad → Kept): 0
+11:44:48.448 background.js:7782    Precision: 100.0%
+11:44:48.449 background.js:7783    Recall: 100.0%
+11:44:48.450 background.js:7784    F1 Score: 100.0%
+
+📈 openrouter/anthropic/claude-3-haiku:
+11:44:48.450 background.js:7729    Requests: 50
+11:44:48.450 background.js:7730    Average: 954.92ms
+11:44:48.450 background.js:7731    Min: 766.30ms
+11:44:48.450 background.js:7732    Max: 2283.20ms
+11:44:48.451 background.js:7736    ⚠️  JSON Format Errors: 1 (2.0%)
+11:44:48.452 background.js:7741    Total Tokens: 24533 (~24.5K)
+11:44:48.452 background.js:7742      - Input (prompt): 22228
+11:44:48.452 background.js:7744      - Output (completion): 2305
+11:44:48.452 background.js:7746    Avg Tokens/Request: 491
+11:44:48.453 background.js:7748      - Input: 445
+11:44:48.453 background.js:7750      - Output: 46
+11:44:48.453 background.js:7753    💰 Total Cost: $0.008438
+11:44:48.453 background.js:7755    💰 Avg Cost/Request: $0.000169
+11:44:48.454 background.js:7765
+🎯 ACCURACY METRICS (42 samples):
+11:44:48.454 background.js:7767    Overall Accuracy: 69.0%
+11:44:48.454 background.js:7768      - Correct: 29
+11:44:48.454 background.js:7769      - Incorrect: 13
+11:44:48.455 background.js:7770    Confusion Matrix:
+11:44:48.455 background.js:7772      - True Positives (Ad → Blocked): 21
+11:44:48.455 background.js:7774      - True Negatives (Non-Ad → Kept): 8
+11:44:48.455 background.js:7776      - False Positives (Non-Ad → Blocked): 13
+11:44:48.455 background.js:7778      - False Negatives (Ad → Kept): 0
+11:44:48.455 background.js:7782    Precision: 61.8%
+11:44:48.455 background.js:7783    Recall: 100.0%
+11:44:48.455 background.js:7784    F1 Score: 76.4%
+
+📈 openrouter/google/gemini-2.5-flash-lite:
+11:44:48.456 background.js:7729    Requests: 50
+11:44:48.456 background.js:7730    Average: 829.26ms
+11:44:48.456 background.js:7731    Min: 527.40ms
+11:44:48.458 background.js:7732    Max: 1082.90ms
+11:44:48.458 background.js:7741    Total Tokens: 23142 (~23.1K)
+11:44:48.458 background.js:7742      - Input (prompt): 20885
+11:44:48.459 background.js:7744      - Output (completion): 2257
+11:44:48.462 background.js:7746    Avg Tokens/Request: 463
+11:44:48.463 background.js:7748      - Input: 418
+11:44:48.463 background.js:7750      - Output: 45
+11:44:48.463 background.js:7753    💰 Total Cost: $0.002991
+11:44:48.463 background.js:7755    💰 Avg Cost/Request: $0.000060
+11:44:48.463 background.js:7765
+🎯 ACCURACY METRICS (42 samples):
+11:44:48.463 background.js:7767    Overall Accuracy: 100.0%
+11:44:48.463 background.js:7768      - Correct: 42
+11:44:48.463 background.js:7769      - Incorrect: 0
+11:44:48.463 background.js:7770    Confusion Matrix:
+11:44:48.463 background.js:7772      - True Positives (Ad → Blocked): 21
+11:44:48.463 background.js:7774      - True Negatives (Non-Ad → Kept): 21
+11:44:48.463 background.js:7776      - False Positives (Non-Ad → Blocked): 0
+11:44:48.463 background.js:7778      - False Negatives (Ad → Kept): 0
+11:44:48.463 background.js:7782    Precision: 100.0%
+11:44:48.463 background.js:7783    Recall: 100.0%
+11:44:48.463 background.js:7784    F1 Score: 100.0%
+
+📈 openrouter/google/gemini-2.5-flash:
+11:44:48.464 background.js:7729    Requests: 50
+11:44:48.464 background.js:7730    Average: 981.76ms
+11:44:48.464 background.js:7731    Min: 668.70ms
+11:44:48.464 background.js:7732    Max: 1552.70ms
+11:44:48.464 background.js:7741    Total Tokens: 22859 (~22.9K)
+11:44:48.464 background.js:7742      - Input (prompt): 20885
+11:44:48.464 background.js:7744      - Output (completion): 1974
+11:44:48.464 background.js:7746    Avg Tokens/Request: 457
+11:44:48.464 background.js:7748      - Input: 418
+11:44:48.464 background.js:7750      - Output: 39
+11:44:48.464 background.js:7753    💰 Total Cost: $0.011201
+11:44:48.465 background.js:7755    💰 Avg Cost/Request: $0.000224
+🎯 ACCURACY METRICS (42 samples):
+11:44:48.465 background.js:7767    Overall Accuracy: 90.5%
+11:44:48.465 background.js:7768      - Correct: 38
+11:44:48.465 background.js:7769      - Incorrect: 4
+11:44:48.465 background.js:7770    Confusion Matrix:
+11:44:48.465 background.js:7772      - True Positives (Ad → Blocked): 21
+11:44:48.465 background.js:7774      - True Negatives (Non-Ad → Kept): 17
+11:44:48.465 background.js:7776      - False Positives (Non-Ad → Blocked): 4
+11:44:48.465 background.js:7778      - False Negatives (Ad → Kept): 0
+11:44:48.465 background.js:7782    Precision: 84.0%
+11:44:48.466 background.js:7783    Recall: 100.0%
+11:44:48.466 background.js:7784    F1 Score: 91.3%
+
+📈 chromePrompt/gemini-nano:
+11:44:48.466 background.js:7729    Requests: 50
+11:44:48.466 background.js:7730    Average: 1484.21ms
+11:44:48.466 background.js:7731    Min: 1217.30ms
+11:44:48.466 background.js:7732    Max: 1887.40ms
+11:44:48.466 background.js:7758    ℹ️  No token usage data available
+11:44:48.466 background.js:7759       (provider does not return usage info)
+11:44:48.466 background.js:7765
+🎯 ACCURACY METRICS (42 samples):
+11:44:48.466 background.js:7767    Overall Accuracy: 66.7%
+11:44:48.466 background.js:7768      - Correct: 28
+11:44:48.467 background.js:7769      - Incorrect: 14
+11:44:48.467 background.js:7770    Confusion Matrix:
+11:44:48.467 background.js:7772      - True Positives (Ad → Blocked): 21
+11:44:48.467 background.js:7774      - True Negatives (Non-Ad → Kept): 7
+11:44:48.467 background.js:7776      - False Positives (Non-Ad → Blocked): 14
+11:44:48.467 background.js:7778      - False Negatives (Ad → Kept): 0
+11:44:48.467 background.js:7782    Precision: 60.0%
+11:44:48.467 background.js:7783    Recall: 100.0%
+11:44:48.467 background.js:7784    F1 Score: 75.0%
+
+
+📈 lmstudio/lmstudio:google/gemma-3n-e4b:
+10:03:01.606 background.js:7888    Requests: 50
+10:03:01.606 background.js:7889    Average: 1588.45ms
+10:03:01.606 background.js:7890    Min: 1279.30ms
+10:03:01.606 background.js:7891    Max: 2607.50ms
+10:03:01.606 background.js:7917    ℹ️  No token usage data available
+10:03:01.606 background.js:7918       (provider does not return usage info)
+10:03:01.606 background.js:7924
+   🎯 ACCURACY METRICS (42 samples):
+10:03:01.606 background.js:7926    Overall Accuracy: 69.0%
+10:03:01.606 background.js:7927      - Correct: 29
+10:03:01.607 background.js:7928      - Incorrect: 13
+10:03:01.607 background.js:7929    Confusion Matrix:
+10:03:01.607 background.js:7931      - True Positives (Ad → Blocked): 21
+10:03:01.607 background.js:7933      - True Negatives (Non-Ad → Kept): 8
+10:03:01.607 background.js:7935      - False Positives (Non-Ad → Blocked): 13
+10:03:01.607 background.js:7937      - False Negatives (Ad → Kept): 0
+10:03:01.607 background.js:7941    Precision: 61.8%
+10:03:01.607 background.js:7942    Recall: 100.0%
+10:03:01.607 background.js:7943    F1 Score: 76.4%
+
+
+
+Prices
+
+chromePrompt/gemini-nano: free
+
+OpenAI: GPT-5 Nano
+openai/gpt-5-nano
+$0.05
+$0.40
+400,000
+
+
+Anthropic: Claude 3 Haiku
+anthropic/claude-3-haiku
+$0.25
+$1.25
+200,000
+
+
+Google: Gemini 2.5 Flash
+google/gemini-2.5-flash
+$0.30
+$2.50
+1,048,576
+
+
+Google: Gemini 2.5 Flash Lite
+google/gemini-2.5-flash-lite
+$0.10
+$0.40
+1,048,576
+
+
+------------------------------------------------------------------------------------------------
+
+visuals
+
+background.js:7791 📸 VISION ANALYSIS BENCHMARKS
+
+📈 openrouter/anthropic/claude-3-haiku:
+10:38:46.180 background.js:7796    Requests: 50
+10:38:46.180 background.js:7797    Average: 12861.91ms
+10:38:46.180 background.js:7798    Min: 4373.80ms
+10:38:46.180 background.js:7799    Max: 20376.40ms
+10:38:46.180 background.js:7803    ⚠️  JSON Format Errors: 2 (4.0%)
+10:38:46.180 background.js:7808    Avg Image Size: 2108.73 KB
+10:38:46.181 background.js:7809    Detail Levels: auto=50, low=0, high=0
+10:38:46.181 background.js:7814    Total Tokens: 90643 (~90.6K)
+10:38:46.181 background.js:7816      - Input (text + image): 87680
+10:38:46.181 background.js:7818      - Output (completion): 2963
+10:38:46.181 background.js:7820    Avg Tokens/Request: 1813
+10:38:46.181 background.js:7822      - Input: 1754
+10:38:46.181 background.js:7824      - Output: 59
+10:38:46.181 background.js:7827    💰 Total Cost: $0.025624
+10:38:46.181 background.js:7829    💰 Avg Cost/Request: $0.000512
+10:38:46.181 background.js:7839
+🎯 ACCURACY METRICS (50 samples):
+10:38:46.181 background.js:7841    Overall Accuracy: 98.0%
+10:38:46.181 background.js:7842      - Correct: 49
+10:38:46.181 background.js:7843      - Incorrect: 1
+10:38:46.181 background.js:7844    Confusion Matrix:
+10:38:46.181 background.js:7846      - True Positives (Ad → Blocked): 25
+10:38:46.181 background.js:7848      - True Negatives (Non-Ad → Kept): 24
+10:38:46.181 background.js:7850      - False Positives (Non-Ad → Blocked): 1
+10:38:46.181 background.js:7852      - False Negatives (Ad → Kept): 0
+10:38:46.181 background.js:7856    Precision: 96.2%
+10:38:46.181 background.js:7857    Recall: 100.0%
+10:38:46.181 background.js:7858    F1 Score: 98.0%
+
+📈 openrouter/google/gemini-2.5-flash-lite:
+10:38:46.182 background.js:7796    Requests: 50
+10:38:46.182 background.js:7797    Average: 10697.48ms
+10:38:46.182 background.js:7798    Min: 3905.40ms
+10:38:46.182 background.js:7799    Max: 21361.40ms
+10:38:46.182 background.js:7808    Avg Image Size: 2095.50 KB
+10:38:46.182 background.js:7809    Detail Levels: auto=50, low=0, high=0
+10:38:46.182 background.js:7814    Total Tokens: 24715 (~24.7K)
+10:38:46.182 background.js:7816      - Input (text + image): 22350
+10:38:46.182 background.js:7818      - Output (completion): 2365
+10:38:46.182 background.js:7820    Avg Tokens/Request: 494
+10:38:46.182 background.js:7822      - Input: 447
+10:38:46.182 background.js:7824      - Output: 47
+10:38:46.182 background.js:7827    💰 Total Cost: $0.003181
+10:38:46.182 background.js:7829    💰 Avg Cost/Request: $0.000064
+10:38:46.182 background.js:7839
+🎯 ACCURACY METRICS (50 samples):
+10:38:46.182 background.js:7841    Overall Accuracy: 100.0%
+10:38:46.182 background.js:7842      - Correct: 50
+10:38:46.182 background.js:7843      - Incorrect: 0
+10:38:46.182 background.js:7844    Confusion Matrix:
+10:38:46.182 background.js:7846      - True Positives (Ad → Blocked): 24
+10:38:46.182 background.js:7848      - True Negatives (Non-Ad → Kept): 26
+10:38:46.182 background.js:7850      - False Positives (Non-Ad → Blocked): 0
+10:38:46.182 background.js:7852      - False Negatives (Ad → Kept): 0
+10:38:46.182 background.js:7856    Precision: 100.0%
+10:38:46.182 background.js:7857    Recall: 100.0%
+10:38:46.182 background.js:7858    F1 Score: 100.0%
+
+📈 openrouter/google/gemini-2.5-flash:
+10:38:46.182 background.js:7796    Requests: 50
+10:38:46.182 background.js:7797    Average: 12408.27ms
+10:38:46.182 background.js:7798    Min: 3990.50ms
+10:38:46.182 background.js:7799    Max: 22749.10ms
+10:38:46.183 background.js:7808    Avg Image Size: 2016.85 KB
+10:38:46.183 background.js:7809    Detail Levels: auto=50, low=0, high=0
+10:38:46.183 background.js:7814    Total Tokens: 24619 (~24.6K)
+10:38:46.183 background.js:7816      - Input (text + image): 22350
+10:38:46.183 background.js:7818      - Output (completion): 2269
+10:38:46.183 background.js:7820    Avg Tokens/Request: 492
+10:38:46.183 background.js:7822      - Input: 447
+10:38:46.183 background.js:7824      - Output: 45
+10:38:46.183 background.js:7827    💰 Total Cost: $0.011820
+10:38:46.183 background.js:7829    💰 Avg Cost/Request: $0.000236
+10:38:46.183 background.js:7839
+🎯 ACCURACY METRICS (50 samples):
+10:38:46.183 background.js:7841    Overall Accuracy: 90.0%
+10:38:46.183 background.js:7842      - Correct: 45
+10:38:46.183 background.js:7843      - Incorrect: 5
+10:38:46.183 background.js:7844    Confusion Matrix:
+10:38:46.183 background.js:7846      - True Positives (Ad → Blocked): 25
+10:38:46.183 background.js:7848      - True Negatives (Non-Ad → Kept): 20
+10:38:46.183 background.js:7850      - False Positives (Non-Ad → Blocked): 5
+10:38:46.183 background.js:7852      - False Negatives (Ad → Kept): 0
+10:38:46.183 background.js:7856    Precision: 83.3%
+10:38:46.183 background.js:7857    Recall: 100.0%
+10:38:46.183 background.js:7858    F1 Score: 90.9%
+
+📈 openai/gpt-5-mini:
+10:38:46.183 background.js:7796    Requests: 50
+10:38:46.183 background.js:7797    Average: 14794.91ms
+10:38:46.183 background.js:7798    Min: 10452.30ms
+10:38:46.183 background.js:7799    Max: 21811.00ms
+10:38:46.183 background.js:7808    Avg Image Size: 2006.51 KB
+10:38:46.183 background.js:7809    Detail Levels: auto=50, low=0, high=0
+10:38:46.183 background.js:7814    Estimated Total Tokens (based on 36 req sample): ~105,900
+10:38:46.183 background.js:7816      - Input (text + image): ~93,500
+10:38:46.183 background.js:7818      - Output (completion): ~12,400
+10:38:46.183 background.js:7820    Avg Tokens/Request: ~2,118
+10:38:46.183 background.js:7822      - Input: ~1,870
+10:38:46.183 background.js:7824      - Output: ~248
+10:38:46.183 background.js:7827    💰 Estimated Total Cost: $0.011445
+10:38:46.183 background.js:7829    💰 Estimated Avg Cost/Request: $0.000229
+10:38:46.183 background.js:7839
+🎯 ACCURACY METRICS (50 samples):
+10:38:46.183 background.js:7841    Overall Accuracy: 98.0%
+10:38:46.183 background.js:7842      - Correct: 49
+10:38:46.183 background.js:7843      - Incorrect: 1
+10:38:46.183 background.js:7844    Confusion Matrix:
+10:38:46.183 background.js:7846      - True Positives (Ad → Blocked): 26
+10:38:46.183 background.js:7848      - True Negatives (Non-Ad → Kept): 23
+10:38:46.183 background.js:7850      - False Positives (Non-Ad → Blocked): 1
+10:38:46.183 background.js:7852      - False Negatives (Ad → Kept): 0
+10:38:46.183 background.js:7856    Precision: 96.3%
+10:38:46.183 background.js:7857    Recall: 100.0%
+10:38:46.183 background.js:7858    F1 Score: 98.1%
+
+📈 chromePrompt/gemini-nano-vision:
+10:38:46.184 background.js:7796    Requests: 50
+10:38:46.184 background.js:7797    Average: 14417.92ms
+10:38:46.184 background.js:7798    Min: 3168.90ms
+10:38:46.184 background.js:7799    Max: 34094.80ms
+10:38:46.184 background.js:7808    Avg Image Size: 2005.64 KB
+10:38:46.184 background.js:7809    Detail Levels: auto=50, low=0, high=0
+10:38:46.184 background.js:7832    ℹ️  No token usage data available
+10:38:46.184 background.js:7833       (provider does not return usage info)
+10:38:46.184 background.js:7839
+🎯 ACCURACY METRICS (50 samples):
+10:38:46.184 background.js:7841    Overall Accuracy: 74.0%
+10:38:46.184 background.js:7842      - Correct: 37
+10:38:46.184 background.js:7843      - Incorrect: 13
+10:38:46.184 background.js:7844    Confusion Matrix:
+10:38:46.184 background.js:7846      - True Positives (Ad → Blocked): 25
+10:38:46.184 background.js:7848      - True Negatives (Non-Ad → Kept): 12
+10:38:46.184 background.js:7850      - False Positives (Non-Ad → Blocked): 13
+10:38:46.184 background.js:7852      - False Negatives (Ad → Kept): 0
+10:38:46.184 background.js:7856    Precision: 65.8%
+10:38:46.184 background.js:7857    Recall: 100.0%
+10:38:46.184 background.js:7858    F1 Score: 79.4%

@@ -1,0 +1,451 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Debug Mode - Visual Ad Detection Test</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            margin: 0;
+            padding: 20px;
+            background-color: #f5f5f5;
+        }
+
+        .container {
+            max-width: 1400px;
+            margin: 0 auto;
+        }
+
+        .header {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            padding: 30px;
+            border-radius: 12px;
+            margin-bottom: 30px;
+            text-align: center;
+        }
+
+        .header h1 {
+            margin: 0 0 10px 0;
+            font-size: 28px;
+        }
+
+        .header p {
+            margin: 0;
+            font-size: 14px;
+            opacity: 0.9;
+        }
+
+        .controls {
+            background: white;
+            padding: 20px;
+            border-radius: 8px;
+            margin-bottom: 20px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            border: 1px solid #e0e0e0;
+        }
+
+        .toggle-container {
+            display: flex;
+            align-items: center;
+            gap: 15px;
+        }
+
+        .toggle-switch {
+            position: relative;
+            width: 60px;
+            height: 30px;
+            background-color: #ccc;
+            border-radius: 30px;
+            cursor: pointer;
+            transition: background-color 0.3s;
+        }
+
+        .toggle-switch.active {
+            background-color: #667eea;
+        }
+
+        .toggle-slider {
+            position: absolute;
+            top: 3px;
+            left: 3px;
+            width: 24px;
+            height: 24px;
+            background: white;
+            border-radius: 50%;
+            transition: transform 0.3s;
+            box-shadow: 0 2px 4px rgba(0,0,0,0.2);
+        }
+
+        .toggle-switch.active .toggle-slider {
+            transform: translateX(30px);
+        }
+
+        .toggle-label {
+            font-size: 14px;
+            font-weight: 500;
+            color: #333;
+        }
+
+        .stats {
+            font-size: 13px;
+            color: #666;
+        }
+
+        .stats-item {
+            display: inline-block;
+            margin-left: 20px;
+        }
+
+        .stats-item strong {
+            color: #333;
+        }
+
+        .grid-container {
+            display: grid;
+            grid-template-columns: repeat(2, 1fr);
+            gap: 12px;
+            margin-bottom: 20px;
+        }
+
+        .social-post {
+            background: white;
+            padding: 12px;
+            border-radius: 6px;
+            border: 1px solid #e0e0e0;
+            position: relative;
+        }
+
+        .post-header {
+            display: flex;
+            align-items: center;
+            margin-bottom: 8px;
+        }
+
+        .avatar {
+            width: 28px;
+            height: 28px;
+            border-radius: 50%;
+            color: white;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-weight: bold;
+            font-size: 13px;
+        }
+
+        .post-info {
+            margin-left: 8px;
+        }
+
+        .post-author {
+            font-weight: bold;
+            font-size: 13px;
+        }
+
+        .post-meta {
+            font-size: 11px;
+            color: #65676b;
+        }
+
+        .post-text {
+            margin: 6px 0;
+            font-size: 13px;
+        }
+
+        .post-image {
+            width: 70%;
+            border-radius: 6px;
+            display: block;
+            margin: 0 auto;
+        }
+
+        .debug-marker {
+            position: absolute;
+            top: 8px;
+            right: 8px;
+            color: white;
+            font-size: 9px;
+            padding: 4px 8px;
+            border-radius: 4px;
+            font-weight: bold;
+            transition: opacity 0.3s;
+        }
+
+        .debug-marker::before {
+            content: attr(data-label);
+        }
+
+        .debug-marker.should-block {
+            background: #ff4757;
+        }
+
+        .debug-marker.should-keep {
+            background: #2ed573;
+        }
+
+        /* Hide labels by default */
+        body:not(.show-labels) .debug-marker {
+            opacity: 0;
+            pointer-events: none;
+        }
+
+        body.show-labels .debug-marker {
+            opacity: 1;
+        }
+
+        .legend-badge {
+            padding: 4px 8px;
+            border-radius: 4px;
+            color: white;
+            font-weight: bold;
+            font-size: 10px;
+        }
+
+        .legend-badge.ad {
+            background: #ff4757;
+        }
+
+        .legend-badge.ok {
+            background: #2ed573;
+        }
+
+        @media (max-width: 1024px) {
+            .grid-container {
+                grid-template-columns: 1fr;
+            }
+
+            .controls {
+                flex-direction: column;
+                gap: 15px;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div class="header">
+            <div style="margin-bottom: 15px; display: flex; gap: 20px; justify-content: center;">
+                <a href="index.html" style="color: white; text-decoration: none; font-size: 14px; opacity: 0.9;">
+                    ← Back to Main Page
+                </a>
+                <span style="color: white; opacity: 0.5;">|</span>
+                <a href="visual-test.html" style="color: white; text-decoration: none; font-size: 14px; opacity: 0.9;">
+                    📸 Visual Test Page
+                </a>
+            </div>
+            <h1>🔧 DEBUG MODE - Visual ad detection</h1>
+            <p>Toggle ground truth labels on/off to test LLM accuracy</p>
+        </div>
+
+        <div class="controls">
+            <div class="toggle-container">
+                <span class="toggle-label">Show Ground Truth Labels:</span>
+                <div class="toggle-switch" id="labelToggle" onclick="toggleLabels()">
+                    <div class="toggle-slider"></div>
+                </div>
+            </div>
+            <div class="stats">
+                <span class="stats-item"><strong>Total:</strong> <span id="totalCount">4</span></span>
+                <span class="stats-item"><strong>Ads:</strong> <span id="adCount">2</span></span>
+                <span class="stats-item"><strong>Non-Ads:</strong> <span id="nonAdCount">2</span></span>
+            </div>
+        </div>
+
+        <div class="grid-container">
+            <!-- AD POST 1 - AI Course -->
+            <article class="social-post" data-ground-truth="ad">
+                <div class="debug-marker should-block" data-label="VISUAL-AD"></div>
+                <div class="post-header">
+                    <div class="avatar" style="background: #4267B2;">TL</div>
+                    <div class="post-info">
+                        <div class="post-author">TechLearn Academy</div>
+                        <div class="post-meta">Sponsored · 2h</div>
+                    </div>
+                </div>
+                <p class="post-text">New course launching this week! 🚀</p>
+                <img src="public/ad-ai-course.png" alt="AI Course Advertisement" class="post-image">
+            </article>
+
+            <!-- NON-AD POST 1 - Landscape -->
+            <article class="social-post" data-ground-truth="not-ad">
+                <div class="debug-marker should-keep" data-label="VISUAL-OK"></div>
+                <div class="post-header">
+                    <div class="avatar" style="background: #34a853;">NL</div>
+                    <div class="post-info">
+                        <div class="post-author">Nature Lover</div>
+                        <div class="post-meta">1h</div>
+                    </div>
+                </div>
+                <p class="post-text">Beautiful morning in the mountains ⛰️</p>
+                <img src="public/non-ad-landscape.png" alt="Mountain Landscape" class="post-image">
+            </article>
+
+            <!-- NON-AD POST 2 - Reading -->
+            <article class="social-post" data-ground-truth="not-ad">
+                <div class="debug-marker should-keep" data-label="VISUAL-OK"></div>
+                <div class="post-header">
+                    <div class="avatar" style="background: #ea4335;">BR</div>
+                    <div class="post-info">
+                        <div class="post-author">Book Reader</div>
+                        <div class="post-meta">3h</div>
+                    </div>
+                </div>
+                <p class="post-text">Perfect reading spot 📚</p>
+                <img src="public/non-ad-reading.png" alt="Reading Under Tree" class="post-image">
+            </article>
+
+            <!-- AD POST 2 - iPhone -->
+            <article class="social-post" data-ground-truth="ad">
+                <div class="debug-marker should-block" data-label="VISUAL-AD"></div>
+                <div class="post-header">
+                    <div class="avatar" style="background: #fbbc04;">MS</div>
+                    <div class="post-info">
+                        <div class="post-author">MegaStore</div>
+                        <div class="post-meta">Sponsored · 4h</div>
+                    </div>
+                </div>
+                <p class="post-text">Limited time offer! 🔥</p>
+                <img src="public/ad-iphone-discount.png" alt="iPhone Sale Advertisement" class="post-image">
+            </article>
+
+            <!-- AD POST 1 - AI Course -->
+            <article class="social-post" data-ground-truth="ad">
+                <div class="debug-marker should-block" data-label="VISUAL-AD"></div>
+                <div class="post-header">
+                    <div class="avatar" style="background: #4267B2;">TL</div>
+                    <div class="post-info">
+                        <div class="post-author">TechLearn Academy</div>
+                        <div class="post-meta">Sponsored · 2h</div>
+                    </div>
+                </div>
+                <p class="post-text">New course launching this week! 🚀</p>
+                <img src="public/ad-ai-course.png" alt="AI Course Advertisement" class="post-image">
+            </article>
+
+            <!-- NON-AD POST 1 - Landscape -->
+            <article class="social-post" data-ground-truth="not-ad">
+                <div class="debug-marker should-keep" data-label="VISUAL-OK"></div>
+                <div class="post-header">
+                    <div class="avatar" style="background: #34a853;">NL</div>
+                    <div class="post-info">
+                        <div class="post-author">Nature Lover</div>
+                        <div class="post-meta">1h</div>
+                    </div>
+                </div>
+                <p class="post-text">Beautiful morning in the mountains ⛰️</p>
+                <img src="public/non-ad-landscape.png" alt="Mountain Landscape" class="post-image">
+            </article>
+
+            <!-- NON-AD POST 2 - Reading -->
+            <article class="social-post" data-ground-truth="not-ad">
+                <div class="debug-marker should-keep" data-label="VISUAL-OK"></div>
+                <div class="post-header">
+                    <div class="avatar" style="background: #ea4335;">BR</div>
+                    <div class="post-info">
+                        <div class="post-author">Book Reader</div>
+                        <div class="post-meta">3h</div>
+                    </div>
+                </div>
+                <p class="post-text">Perfect reading spot 📚</p>
+                <img src="public/non-ad-reading.png" alt="Reading Under Tree" class="post-image">
+            </article>
+
+            <!-- AD POST 2 - iPhone -->
+            <article class="social-post" data-ground-truth="ad">
+                <div class="debug-marker should-block" data-label="VISUAL-AD"></div>
+                <div class="post-header">
+                    <div class="avatar" style="background: #fbbc04;">MS</div>
+                    <div class="post-info">
+                        <div class="post-author">MegaStore</div>
+                        <div class="post-meta">Sponsored · 4h</div>
+                    </div>
+                </div>
+                <p class="post-text">Limited time offer! 🔥</p>
+                <img src="public/ad-iphone-discount.png" alt="iPhone Sale Advertisement" class="post-image">
+            </article>
+
+            <!-- AD POST 1 - AI Course -->
+            <article class="social-post" data-ground-truth="ad">
+                <div class="debug-marker should-block" data-label="VISUAL-AD"></div>
+                <div class="post-header">
+                    <div class="avatar" style="background: #4267B2;">TL</div>
+                    <div class="post-info">
+                        <div class="post-author">TechLearn Academy</div>
+                        <div class="post-meta">Sponsored · 2h</div>
+                    </div>
+                </div>
+                <p class="post-text">New course launching this week! 🚀</p>
+                <img src="public/ad-ai-course.png" alt="AI Course Advertisement" class="post-image">
+            </article>
+
+            <!-- NON-AD POST 1 - Landscape -->
+            <article class="social-post" data-ground-truth="not-ad">
+                <div class="debug-marker should-keep" data-label="VISUAL-OK"></div>
+                <div class="post-header">
+                    <div class="avatar" style="background: #34a853;">NL</div>
+                    <div class="post-info">
+                        <div class="post-author">Nature Lover</div>
+                        <div class="post-meta">1h</div>
+                    </div>
+                </div>
+                <p class="post-text">Beautiful morning in the mountains ⛰️</p>
+                <img src="public/non-ad-landscape.png" alt="Mountain Landscape" class="post-image">
+            </article>
+
+            <!-- NON-AD POST 2 - Reading -->
+            <article class="social-post" data-ground-truth="not-ad">
+                <div class="debug-marker should-keep" data-label="VISUAL-OK"></div>
+                <div class="post-header">
+                    <div class="avatar" style="background: #ea4335;">BR</div>
+                    <div class="post-info">
+                        <div class="post-author">Book Reader</div>
+                        <div class="post-meta">3h</div>
+                    </div>
+                </div>
+                <p class="post-text">Perfect reading spot 📚</p>
+                <img src="public/non-ad-reading.png" alt="Reading Under Tree" class="post-image">
+            </article>
+
+            <!-- AD POST 2 - iPhone -->
+            <article class="social-post" data-ground-truth="ad">
+                <div class="debug-marker should-block" data-label="VISUAL-AD"></div>
+                <div class="post-header">
+                    <div class="avatar" style="background: #fbbc04;">MS</div>
+                    <div class="post-info">
+                        <div class="post-author">MegaStore</div>
+                        <div class="post-meta">Sponsored · 4h</div>
+                    </div>
+                </div>
+                <p class="post-text">Limited time offer! 🔥</p>
+                <img src="public/ad-iphone-discount.png" alt="iPhone Sale Advertisement" class="post-image">
+            </article>
+        </div>
+    </div>
+
+    <script>
+        // Load saved toggle state
+        const savedState = localStorage.getItem('showLabels');
+        if (savedState === 'true') {
+            document.body.classList.add('show-labels');
+            document.getElementById('labelToggle').classList.add('active');
+        }
+
+        function toggleLabels() {
+            const toggle = document.getElementById('labelToggle');
+            const body = document.body;
+
+            toggle.classList.toggle('active');
+            body.classList.toggle('show-labels');
+
+            // Save state
+            const isShowing = body.classList.contains('show-labels');
+            localStorage.setItem('showLabels', isShowing);
+        }
+    </script>
+</body>
+</html>
+

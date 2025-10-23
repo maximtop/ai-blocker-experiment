@@ -1,0 +1,607 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <meta charset="utf-8">
+  <style>
+    body {
+      width: 400px;
+      padding: 20px;
+      font-family: Arial, sans-serif;
+      margin: 0;
+    }
+
+    .header {
+      text-align: center;
+      margin-bottom: 20px;
+      position: relative;
+    }
+
+    .settings-icon-btn {
+      position: absolute;
+      top: 0;
+      right: 0;
+      background: transparent;
+      border: none;
+      font-size: 20px;
+      cursor: pointer;
+      padding: 4px 8px;
+      border-radius: 6px;
+      transition: all 0.2s ease;
+      color: #666;
+      line-height: 1;
+    }
+
+    .settings-icon-btn:hover {
+      background: rgba(0, 124, 186, 0.1);
+      color: #007cba;
+    }
+
+    .header h1 {
+      font-size: 20px;
+      color: #222;
+      margin: 0;
+      font-weight: 700;
+      letter-spacing: -0.5px;
+    }
+
+    .section {
+      margin-bottom: 15px;
+    }
+
+    .section label {
+      display: block;
+      font-weight: 600;
+      margin-bottom: 8px;
+      color: #444;
+      font-size: 13px;
+    }
+
+    .rules-container {
+      border: 1px solid #ddd;
+      border-radius: 4px;
+      padding: 10px;
+      max-height: 200px;
+      overflow-y: auto;
+      background: #f9f9f9;
+    }
+
+    .rule-item {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      padding: 12px;
+      margin-bottom: 8px;
+      background: white;
+      border-radius: 6px;
+      border: 1px solid #e0e0e0;
+      font-size: 12px;
+      gap: 10px;
+      transition: all 0.2s ease;
+    }
+
+    .rule-item:hover {
+      border-color: #007cba;
+      box-shadow: 0 2px 4px rgba(0, 124, 186, 0.1);
+    }
+
+    .rule-item:last-child {
+      border-bottom: 1px solid #e0e0e0;
+    }
+
+    .rule-item.disabled {
+      background: #f8f8f8;
+      border-color: #e8e8e8;
+    }
+
+    .rule-item.disabled:hover {
+      border-color: #ccc;
+      box-shadow: none;
+    }
+
+    .rule-item.disabled .rule-text {
+      text-decoration: line-through;
+      color: #999;
+    }
+
+    .rule-toggle {
+      cursor: pointer;
+      width: 18px;
+      height: 18px;
+      margin: 0;
+      flex-shrink: 0;
+      accent-color: #007cba;
+    }
+
+    .rule-text {
+      flex-grow: 1;
+      font-family: 'SF Mono', 'Monaco', 'Consolas', monospace;
+      font-size: 11px;
+      color: #333;
+      margin-right: 10px;
+      word-break: break-all;
+      line-height: 1.4;
+    }
+
+    .rule-text.editing {
+      display: none;
+    }
+
+    .rule-edit-input {
+      flex-grow: 1;
+      font-family: monospace;
+      font-size: 11px;
+      padding: 2px 4px;
+      border: 1px solid #007cba;
+      border-radius: 2px;
+      margin-right: 10px;
+    }
+
+    .rule-edit-actions {
+      display: flex;
+      gap: 3px;
+    }
+
+    .rule-edit-actions .btn-small {
+      font-size: 9px;
+      padding: 1px 4px;
+    }
+
+    .rule-actions {
+      display: flex;
+      gap: 5px;
+    }
+
+    .btn-small {
+      background: #007cba;
+      color: white;
+      border: none;
+      border-radius: 5px;
+      padding: 6px 10px;
+      cursor: pointer;
+      font-size: 11px;
+      transition: all 0.2s ease;
+      font-weight: 500;
+      box-shadow: 0 1px 2px rgba(0, 0, 0, 0.1);
+    }
+
+    .btn-small.test {
+      background: #28a745;
+    }
+
+    .btn-small.edit {
+      background: #ffc107;
+      color: #212529;
+    }
+
+    .btn-small.remove {
+      background: #dc3545;
+    }
+
+    .btn-small:hover {
+      transform: translateY(-1px);
+      box-shadow: 0 2px 4px rgba(0, 0, 0, 0.15);
+    }
+
+    .btn-small:active {
+      transform: translateY(0);
+      box-shadow: 0 1px 2px rgba(0, 0, 0, 0.1);
+    }
+
+    .input-group {
+      display: flex;
+      gap: 5px;
+      margin-bottom: 10px;
+    }
+
+    .input-group input {
+      flex-grow: 1;
+      padding: 10px 12px;
+      border: 2px solid #e0e0e0;
+      border-radius: 6px;
+      font-size: 12px;
+      font-family: 'SF Mono', 'Monaco', 'Consolas', monospace;
+      transition: all 0.2s ease;
+    }
+
+    .input-group input:focus {
+      outline: none;
+      border-color: #007cba;
+      box-shadow: 0 0 0 3px rgba(0, 124, 186, 0.1);
+    }
+
+    .btn {
+      padding: 10px 16px;
+      border: none;
+      border-radius: 6px;
+      cursor: pointer;
+      font-size: 13px;
+      font-weight: 600;
+      transition: all 0.2s ease;
+      box-shadow: 0 1px 3px rgba(0, 0, 0, 0.12);
+    }
+
+    .btn:hover {
+      transform: translateY(-1px);
+      box-shadow: 0 2px 6px rgba(0, 0, 0, 0.15);
+    }
+
+    .btn:active {
+      transform: translateY(0);
+      box-shadow: 0 1px 3px rgba(0, 0, 0, 0.12);
+    }
+
+    .btn-primary {
+      background: #007cba;
+      color: white;
+    }
+
+    .btn-primary:hover {
+      background: #006aa3;
+    }
+
+    .btn-success {
+      background: #28a745;
+      color: white;
+      width: 100%;
+      margin-top: 10px;
+    }
+
+    .btn-success:hover {
+      background: #218838;
+    }
+
+    .btn-secondary {
+      background: #6c757d;
+      color: white;
+      width: 100%;
+      margin-top: 5px;
+    }
+
+    .btn-secondary:hover {
+      background: #5a6268;
+    }
+
+
+    .status {
+      margin-top: 15px;
+      padding: 10px;
+      border-radius: 4px;
+      text-align: center;
+      font-size: 12px;
+    }
+
+    .status.success {
+      background: #d4edda;
+      color: #155724;
+      border: 1px solid #c3e6cb;
+    }
+
+    .status.error {
+      background: #f8d7da;
+      color: #721c24;
+      border: 1px solid #f5c6cb;
+    }
+
+    .status.info {
+      background: #cce5ff;
+      color: #004085;
+      border: 1px solid #99ccff;
+    }
+
+    .empty-rules {
+      text-align: center;
+      color: #888;
+      font-style: italic;
+      padding: 20px;
+      font-size: 12px;
+    }
+
+    .stats {
+      background: #e7f3ff;
+      padding: 10px;
+      border-radius: 4px;
+      margin-top: 10px;
+      font-size: 12px;
+    }
+
+    .help {
+      background: linear-gradient(135deg, #fff9e6 0%, #fff3cd 100%);
+      padding: 12px 14px;
+      border-radius: 8px;
+      margin-bottom: 15px;
+      font-size: 11px;
+      border: 1px solid #ffe69c;
+      box-shadow: 0 1px 3px rgba(0, 0, 0, 0.05);
+    }
+
+    .help h4 {
+      margin: 0 0 8px 0;
+      color: #856404;
+      font-size: 12px;
+      font-weight: 600;
+    }
+
+    .help code {
+      background: rgba(255, 255, 255, 0.8);
+      padding: 3px 6px;
+      border-radius: 4px;
+      font-family: 'SF Mono', 'Monaco', 'Consolas', monospace;
+      border: 1px solid rgba(133, 100, 4, 0.1);
+      display: block;
+      margin: 3px 0;
+      font-size: 10px;
+    }
+
+    .presets {
+      margin-bottom: 15px;
+    }
+
+    .preset-item {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      padding: 5px;
+      border: 1px solid #ddd;
+      border-radius: 3px;
+      margin-bottom: 5px;
+      font-size: 11px;
+    }
+
+    .preset-text {
+      flex-grow: 1;
+      font-family: monospace;
+      color: #555;
+    }
+
+    .threshold-settings {
+      background: #f0f8ff;
+      padding: 15px;
+      border-radius: 8px;
+      margin-bottom: 15px;
+      border: 1px solid #cce5ff;
+    }
+
+    .threshold-settings h3 {
+      margin: 0;
+      font-size: 13px;
+      color: #004085;
+      font-weight: 600;
+      cursor: pointer;
+      display: flex;
+      align-items: center;
+      gap: 6px;
+      user-select: none;
+    }
+
+    .threshold-settings h3:hover {
+      color: #003366;
+    }
+
+    .threshold-toggle-icon {
+      font-size: 11px;
+      transition: transform 0.2s ease;
+    }
+
+    .threshold-toggle-icon.collapsed {
+      transform: rotate(-90deg);
+    }
+
+    .threshold-item {
+      margin-bottom: 12px;
+    }
+
+    .threshold-item:last-child {
+      margin-bottom: 0;
+    }
+
+    .threshold-item label {
+      display: block;
+      font-size: 12px;
+      color: #555;
+      margin-bottom: 6px;
+      font-weight: 500;
+    }
+
+    .threshold-item label span {
+      color: #007cba;
+      font-weight: 700;
+      font-size: 13px;
+    }
+
+    .threshold-item input[type="range"] {
+      width: 100%;
+      height: 6px;
+      border-radius: 3px;
+      background: #d3d3d3;
+      outline: none;
+      -webkit-appearance: none;
+      appearance: none;
+      margin-bottom: 4px;
+    }
+
+    .threshold-item input[type="range"]::-webkit-slider-thumb {
+      -webkit-appearance: none;
+      appearance: none;
+      width: 16px;
+      height: 16px;
+      border-radius: 50%;
+      background: #007cba;
+      cursor: pointer;
+      box-shadow: 0 1px 3px rgba(0, 0, 0, 0.3);
+    }
+
+    .threshold-item input[type="range"]::-moz-range-thumb {
+      width: 16px;
+      height: 16px;
+      border-radius: 50%;
+      background: #007cba;
+      cursor: pointer;
+      box-shadow: 0 1px 3px rgba(0, 0, 0, 0.3);
+      border: none;
+    }
+
+    .threshold-controls {
+      overflow: hidden;
+      transition: max-height 0.3s ease, opacity 0.3s ease, margin-top 0.3s ease;
+      max-height: 500px;
+      opacity: 1;
+      margin-top: 12px;
+    }
+
+    .threshold-controls.collapsed {
+      max-height: 0;
+      opacity: 0;
+      margin-top: 0;
+    }
+
+    .help-text {
+      font-size: 10px;
+      color: #666;
+      margin-top: 2px;
+      font-style: italic;
+    }
+
+    /* Toggle Switch Styles */
+    .toggle-container {
+      margin-top: 15px;
+      text-align: center;
+    }
+
+    .toggle-wrapper {
+      display: inline-flex;
+      align-items: center;
+      gap: 12px;
+      cursor: pointer;
+      user-select: none;
+    }
+
+    .toggle-label {
+      font-size: 13px;
+      color: #444;
+      font-weight: 500;
+    }
+
+    .toggle-switch {
+      position: relative;
+      width: 48px;
+      height: 26px;
+      background: #ccc;
+      border-radius: 13px;
+      transition: background-color 0.3s ease;
+      box-shadow: inset 0 1px 3px rgba(0, 0, 0, 0.2);
+    }
+
+    .toggle-switch::before {
+      content: '';
+      position: absolute;
+      width: 20px;
+      height: 20px;
+      border-radius: 50%;
+      top: 3px;
+      left: 3px;
+      background: white;
+      transition: transform 0.3s ease;
+      box-shadow: 0 2px 4px rgba(0, 0, 0, 0.2);
+    }
+
+    .toggle-switch.checked {
+      background: #5a9e6f;
+    }
+
+    .toggle-switch.checked::before {
+      transform: translateX(22px);
+    }
+
+    .toggle-status {
+      font-weight: 600;
+      font-size: 13px;
+      min-width: 32px;
+      text-align: left;
+    }
+
+    .toggle-status.on {
+      color: #28a745;
+    }
+
+    .toggle-status.off {
+      color: #dc3545;
+    }
+
+  </style>
+</head>
+<body>
+  <div class="header">
+    <button class="settings-icon-btn" id="settingsBtn">⚙️</button>
+    <h1 id="extensionTitle">🤖 LLM Ad Blocker</h1>
+    <p style="margin: 5px 0; font-size: 12px; color: #666;" id="subtitle">Rule-based blocking</p>
+
+    <div class="toggle-container">
+      <label class="toggle-wrapper">
+        <span class="toggle-label" id="toggleLabel">Blocking enabled:</span>
+        <div class="toggle-switch checked" id="toggleSwitch">
+          <input type="checkbox" id="enabledToggle" checked style="display: none;">
+        </div>
+        <span class="toggle-status on" id="toggleStatus">ON</span>
+      </label>
+    </div>
+  </div>
+
+  <div class="help">
+    <h4 id="ruleFormatLabel">📝 Rule format:</h4>
+    <code>selector:contains-meaning-embedding('text')</code><br>
+    <code>selector:contains-meaning-prompt('criteria')</code><br>
+    <code>selector:contains-meaning-vision('criteria')</code>
+  </div>
+
+  <div class="section">
+    <label id="blockingRulesLabel">Blocking rules:</label>
+    <div class="rules-container" id="rulesContainer">
+      <div class="empty-rules" id="emptyRules">
+        Add rules to block advertisements
+      </div>
+    </div>
+
+    <div class="input-group">
+      <input
+        type="text"
+        id="ruleInput"
+        placeholder="div:contains-meaning-embedding('advertisement')"
+        maxlength="200"
+      >
+      <button class="btn btn-primary" id="addRuleBtn">Add</button>
+    </div>
+  </div>
+
+  <div class="threshold-settings">
+    <h3 id="thresholdToggle">
+      <span class="threshold-toggle-icon collapsed">▼</span>
+      ⚙️ Detection Thresholds
+    </h3>
+    
+    <div class="threshold-controls collapsed" id="thresholdControls">
+      <div class="threshold-item">
+        <label>Embedding Similarity: <span id="embeddingThresholdValue">32%</span></label>
+        <input type="range" id="embeddingThreshold" min="10" max="90" value="32" step="1">
+        <p class="help-text">Higher = stricter (fewer false positives)</p>
+      </div>
+      
+      <div class="threshold-item">
+        <label>Prompt Confidence: <span id="promptThresholdValue">70%</span></label>
+        <input type="range" id="promptThreshold" min="50" max="95" value="70" step="5">
+        <p class="help-text">Higher = stricter (more certain matches only)</p>
+      </div>
+      
+      <div class="threshold-item">
+        <label>Vision Confidence: <span id="visionThresholdValue">70%</span></label>
+        <input type="range" id="visionThreshold" min="50" max="95" value="70" step="5">
+        <p class="help-text">Higher = stricter (more certain image matches only)</p>
+      </div>
+    </div>
+  </div>
+
+  <div id="stats" class="stats" style="display: none;"></div>
+  <div id="status" class="status" style="display: none;"></div>
+
+  <script src="popup.js"></script>
+</body>
+</html>

@@ -1,0 +1,353 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <meta charset="utf-8">
+  <title>LLM Ad Blocker - Settings</title>
+  <style>
+    body {
+      font-family: Arial, sans-serif;
+      max-width: 600px;
+      margin: 40px auto;
+      padding: 20px;
+      background-color: #f5f5f5;
+    }
+
+    .container {
+      background: white;
+      padding: 30px;
+      border-radius: 8px;
+      box-shadow: 0 2px 10px rgba(0,0,0,0.1);
+    }
+
+    .header {
+      text-align: center;
+      margin-bottom: 30px;
+      border-bottom: 1px solid #eee;
+      padding-bottom: 20px;
+    }
+
+    .header h1 {
+      color: #333;
+      margin: 0 0 10px 0;
+    }
+
+    .header p {
+      color: #666;
+      margin: 0;
+    }
+
+    .section {
+      margin-bottom: 25px;
+    }
+
+    .section h2 {
+      color: #333;
+      font-size: 18px;
+      margin: 0 0 15px 0;
+      border-left: 4px solid #007cba;
+      padding-left: 15px;
+    }
+
+    .form-group {
+      margin-bottom: 15px;
+    }
+
+    .form-group label {
+      display: block;
+      font-weight: bold;
+      margin-bottom: 5px;
+      color: #555;
+    }
+
+    .form-group input {
+      width: 100%;
+      padding: 10px;
+      border: 1px solid #ddd;
+      border-radius: 4px;
+      font-size: 14px;
+      font-family: monospace;
+      box-sizing: border-box;
+    }
+
+    .form-group input:focus {
+      outline: none;
+      border-color: #007cba;
+      box-shadow: 0 0 5px rgba(0, 124, 186, 0.3);
+    }
+
+    .form-group .help-text {
+      font-size: 12px;
+      color: #666;
+      margin-top: 5px;
+    }
+
+    .btn {
+      padding: 10px 20px;
+      border: none;
+      border-radius: 4px;
+      cursor: pointer;
+      font-size: 14px;
+      margin-right: 10px;
+    }
+
+    .btn-primary {
+      background: #007cba;
+      color: white;
+    }
+
+    .btn-primary:hover {
+      background: #005a87;
+    }
+
+    .btn-secondary {
+      background: #6c757d;
+      color: white;
+    }
+
+    .btn-secondary:hover {
+      background: #545b62;
+    }
+
+    .btn-danger {
+      background: #dc3545;
+      color: white;
+    }
+
+    .btn-danger:hover {
+      background: #c82333;
+    }
+
+    .status {
+      padding: 10px;
+      border-radius: 4px;
+      margin: 15px 0;
+      text-align: center;
+      font-weight: bold;
+    }
+
+    .status.success {
+      background: #d4edda;
+      color: #155724;
+      border: 1px solid #c3e6cb;
+    }
+
+    .status.error {
+      background: #f8d7da;
+      color: #721c24;
+      border: 1px solid #f5c6cb;
+    }
+
+    .status.warning {
+      background: #fff3cd;
+      color: #856404;
+      border: 1px solid #ffc107;
+    }
+
+    .api-info {
+      background: #e7f3ff;
+      padding: 15px;
+      border-radius: 4px;
+      border: 1px solid #007cba;
+      margin-bottom: 20px;
+    }
+
+    .api-info h3 {
+      margin: 0 0 10px 0;
+      color: #007cba;
+    }
+
+    .api-info ul {
+      margin: 10px 0;
+      padding-left: 20px;
+    }
+
+    .key-status {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      margin-top: 10px;
+    }
+
+    .key-status .indicator {
+      width: 12px;
+      height: 12px;
+      border-radius: 50%;
+    }
+
+    .key-status .indicator.valid {
+      background: #28a745;
+    }
+
+    .key-status .indicator.invalid {
+      background: #dc3545;
+    }
+
+    .key-status .indicator.unknown {
+      background: #ffc107;
+    }
+
+    .model-warning {
+      display: none;
+      background: #fff3cd;
+      border: 1px solid #ffc107;
+      border-radius: 4px;
+      padding: 10px;
+      margin-top: 8px;
+      font-size: 13px;
+      color: #856404;
+    }
+
+    .model-warning.show {
+      display: block;
+    }
+
+    .model-warning strong {
+      color: #856404;
+    }
+  </style>
+</head>
+<body>
+  <div class="container">
+    <div class="header">
+      <h1>🤖 LLM Ad Blocker Settings</h1>
+      <p>Configure your API keys and model settings</p>
+    </div>
+
+    <div class="api-info">
+      <h3>📋 How to get API Keys:</h3>
+      <p><strong>OpenAI:</strong></p>
+      <ul>
+        <li>Go to <a href="https://platform.openai.com/api-keys" target="_blank">OpenAI API Keys</a></li>
+        <li>Sign in and click "Create new secret key"</li>
+      </ul>
+      <p><strong>OpenRouter (for Google Gemini):</strong></p>
+      <ul>
+        <li>Go to <a href="https://openrouter.ai/keys" target="_blank">OpenRouter API Keys</a></li>
+        <li>Sign in and create a new API key</li>
+        <li>Access to Google Gemini models and more</li>
+      </ul>
+      <p style="font-size: 12px; color: #666;">Keep your keys secure - never share them publicly</p>
+    </div>
+
+    <div class="section">
+      <h2>🤖 Model Configuration</h2>
+
+      <div class="form-group">
+        <label for="embeddingModelSelect">Embedding Model:</label>
+        <select id="embeddingModelSelect">
+          <!-- Options populated dynamically -->
+        </select>
+        <div class="model-warning" id="embeddingModelWarning">
+          ⚠️ <strong>OpenAI API Key Required</strong><br>
+          This model requires an OpenAI API key. Please add your API key below or switch to a free LM Studio model.
+        </div>
+        <div class="help-text">
+          Model for :contains-meaning-embedding() rules. LM Studio models are free and run locally.
+        </div>
+      </div>
+
+      <div class="form-group">
+        <label for="promptModelSelect">Prompt Model (for prompt rules):</label>
+        <select id="promptModelSelect">
+          <!-- Options populated dynamically -->
+        </select>
+        <div class="model-warning" id="promptModelWarning">
+          ⚠️ <strong>OpenAI API Key Required</strong><br>
+          This model requires an OpenAI API key. Please add your API key below or switch to a free LM Studio model.
+        </div>
+        <div class="help-text">
+          Model for :contains-meaning-prompt() rules. Prices per 1M tokens (input/output).
+        </div>
+      </div>
+
+      <div class="form-group">
+        <label for="visionModelSelect">Vision Model (for vision rules):</label>
+        <select id="visionModelSelect">
+          <!-- Options populated dynamically -->
+        </select>
+        <div class="model-warning show" id="visionModelWarning">
+          ⚠️ <strong>API Key Required</strong><br>
+          Vision analysis requires an API key (OpenAI or OpenRouter). Please add your API key below.
+        </div>
+        <div class="help-text">
+          Model for :contains-meaning-vision() rules.
+        </div>
+      </div>
+    </div>
+
+    <div class="section">
+      <h2>🔑 API Keys</h2>
+
+      <div class="form-group" id="openaiKeyGroup">
+        <label for="openaiKey">OpenAI API Key (Optional):</label>
+        <input
+          type="password"
+          id="openaiKey"
+          placeholder="sk-proj-... (optional for OpenAI models)"
+          maxlength="200"
+        >
+        <div class="help-text">
+          Only required if you want to use OpenAI models. Your API key is stored securely and never shared. Validity will be checked when you use an OpenAI model.
+        </div>
+      </div>
+
+      <div class="form-group" id="openrouterKeyGroup">
+        <label for="openrouterKey">OpenRouter API Key (Optional):</label>
+        <input
+          type="password"
+          id="openrouterKey"
+          placeholder="sk-... (optional for OpenRouter/Google models)"
+          maxlength="200"
+        >
+        <div class="help-text">
+          Only required if you want to use OpenRouter models (including Google Gemini). Your API key is stored securely and never shared. Validity will be checked when you use an OpenRouter model.
+        </div>
+      </div>
+    </div>
+
+    <div class="section">
+      <h2>🔧 Development Options</h2>
+      <div class="form-group">
+        <label style="display: flex; align-items: center; cursor: pointer;">
+          <input type="checkbox" id="saveScreenshotsCheckbox" style="width: auto; margin-right: 10px;">
+          <span>Save screenshots to Downloads folder</span>
+        </label>
+        <div class="help-text">
+          Enable this during testing to save screenshots for debugging. Disable during normal use to avoid cluttering your Downloads folder.
+        </div>
+      </div>
+    </div>
+
+    <div class="section">
+      <h2>💾 Actions</h2>
+      <button class="btn btn-primary" id="saveBtn">💾 Save Settings</button>
+      <button class="btn btn-secondary" id="clearCacheBtn" style="background: #6c757d; margin-top: 10px;">🗑️ Clear Analysis Cache</button>
+    </div>
+
+    <div class="section">
+      <h2>🗑️ Reset & Clear Data</h2>
+      <div style="background: #fff3cd; padding: 15px; border-radius: 4px; border: 1px solid #ffc107; margin-bottom: 15px;">
+        <h4 style="margin: 0 0 10px 0; color: #856404;">⚠️ Warning: This action cannot be undone</h4>
+        <p style="margin: 0; font-size: 14px; color: #856404;">
+          "Clear All Data" will permanently remove:
+        </p>
+        <ul style="margin: 10px 0; color: #856404;">
+          <li><strong>API Keys</strong> - Your OpenAI and OpenRouter API keys</li>
+          <li><strong>All Rules</strong> - All blocking rules you created</li>
+          <li><strong>Settings</strong> - Threshold, model preferences</li>
+          <li><strong>Cache</strong> - All cached analyses (~300+ items)</li>
+        </ul>
+        <p style="margin: 0; font-size: 12px; color: #856404;">
+          <strong>Use this if:</strong> You want to start fresh, switch API accounts, or troubleshoot issues.
+        </p>
+      </div>
+      <button class="btn btn-danger" id="clearBtn">🗑️ Clear All Data</button>
+    </div>
+
+    <div id="status" class="status" style="display: none;"></div>
+
+  </div>
+
+  <script src="entry.js"></script>
+</body>
+</html>

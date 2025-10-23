@@ -1,0 +1,66 @@
+{
+  "extensionName": {
+    "message": "LLM блокировщик рекламы",
+    "description": "Название расширения"
+  },
+  "extensionDescription": {
+    "message": "Блокировка рекламы с помощью LLM embeddings и пользовательских правил",
+    "description": "Описание расширения"
+  },
+  "ruleBasedBlocking": {
+    "message": "Блокировка по правилам",
+    "description": "Подзаголовок в popup"
+  },
+  "ruleFormat": {
+    "message": "Формат правил:",
+    "description": "Заголовок для помощи по формату"
+  },
+  "blockingRules": {
+    "message": "Правила блокировки:",
+    "description": "Заголовок списка правил"
+  },
+  "addRulePlaceholder": {
+    "message": "div:contains('реклама')",
+    "description": "Placeholder для ввода правила"
+  },
+  "addButton": {
+    "message": "Добавить",
+    "description": "Текст кнопки добавления"
+  },
+  "emptyRules": {
+    "message": "Добавьте правила для блокировки рекламы",
+    "description": "Сообщение когда нет правил"
+  },
+  "enterRule": {
+    "message": "Введите правило",
+    "description": "Ошибка пустого ввода"
+  },
+  "invalidFormat": {
+    "message": "Неверный формат. Используйте: селектор:contains-meaning-embedding('текст') или селектор:contains-meaning-prompt('критерий')",
+    "description": "Ошибка неверного формата"
+  },
+  "ruleExists": {
+    "message": "Это правило уже существует",
+    "description": "Ошибка дублирования правила"
+  },
+  "ruleAdded": {
+    "message": "Добавлено правило: $RULE$",
+    "description": "Сообщение об успешном добавлении",
+    "placeholders": {
+      "rule": {
+        "content": "$1",
+        "example": "div:contains('реклама')"
+      }
+    }
+  },
+  "ruleRemoved": {
+    "message": "Удалено: $RULE$",
+    "description": "Сообщение об удалении",
+    "placeholders": {
+      "rule": {
+        "content": "$1",
+        "example": "div:contains('реклама')"
+      }
+    }
+  }
+}

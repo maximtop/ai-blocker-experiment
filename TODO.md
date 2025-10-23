@@ -1,0 +1,1 @@
+- [ ] If we have prompt rules and/or embeddings rules together with visual rules, we should start bluring only after screenshots were made
