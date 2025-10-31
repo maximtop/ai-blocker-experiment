@@ -12,6 +12,11 @@ If you encounter problems or have questions:
 - Create an issue in this repository
 - Contact me at **maximtop@gmail.com**
 
+## Presentation Materials
+
+- 🎬 [View presentation with animations](https://docs.google.com/presentation/d/1Py_jGJie2UNPHMv27SCKY4MYN4n-lc8FL74aAg5IXpc/edit?usp=sharing) (Google Slides)
+- 📄 [Download PDF version](./presentation.pdf) (static, no animations)
+
 ## Table of Contents
 
 - [Build](#build)
