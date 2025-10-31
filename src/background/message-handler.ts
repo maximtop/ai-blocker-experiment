@@ -368,7 +368,7 @@ export class MessageHandler {
 
                 // Check if API keys were added (went from empty to having a value)
                 // or changed to a different value
-                const openaiKeyAdded = updates.openaiApiKey
+                const openaiKeyAdded = typeof updates.openaiApiKey === 'string'
                     && updates.openaiApiKey.length > 0
                     && (!currentSettings.openaiApiKey
                         || currentSettings.openaiApiKey.length === 0);
@@ -376,7 +376,7 @@ export class MessageHandler {
                     && updates.openaiApiKey !== currentSettings.openaiApiKey
                     && currentSettings.openaiApiKey
                     && currentSettings.openaiApiKey.length > 0;
-                const openrouterKeyAdded = updates.openrouterApiKey
+                const openrouterKeyAdded = typeof updates.openrouterApiKey === 'string'
                     && updates.openrouterApiKey.length > 0
                     && (!currentSettings.openrouterApiKey
                         || currentSettings.openrouterApiKey.length === 0);
