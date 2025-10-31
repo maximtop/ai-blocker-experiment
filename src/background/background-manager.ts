@@ -66,7 +66,6 @@ export class BackgroundManager {
         });
 
         logger.info('Services initialized successfully');
-        logger.info('LLM Ad Detector background script loaded');
     }
 
     /**

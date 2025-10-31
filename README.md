@@ -27,7 +27,7 @@ If you encounter problems or have questions:
 
 **Commands:**
 - `make init` - Install dependencies
-- `make build` - Build the extension (output to `dist/`)
+- `make build` - Build the extension (output to `dist/`, includes `extension.zip`)
 - `make lint` - Lint and type-check the code
 
 ## Installation

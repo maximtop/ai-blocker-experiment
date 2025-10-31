@@ -1,4 +1,4 @@
-// Shared constants for the LLM Ad Blocker extension
+// Shared constants for the AI AdBlocker extension
 // Only includes constants used across multiple script contexts
 // (background, content, popup, options)
 

@@ -532,7 +532,7 @@
 <body>
   <div class="header">
     <button class="settings-icon-btn" id="settingsBtn">⚙️</button>
-    <h1 id="extensionTitle">🤖 LLM Ad Blocker</h1>
+    <h1 id="extensionTitle">🤖 AI AdBlocker</h1>
     <p style="margin: 5px 0; font-size: 12px; color: #666;" id="subtitle">Rule-based blocking</p>
 
     <div class="toggle-container">
@@ -577,20 +577,20 @@
       <span class="threshold-toggle-icon collapsed">▼</span>
       ⚙️ Detection Thresholds
     </h3>
-    
+
     <div class="threshold-controls collapsed" id="thresholdControls">
       <div class="threshold-item">
         <label>Embedding Similarity: <span id="embeddingThresholdValue">32%</span></label>
         <input type="range" id="embeddingThreshold" min="10" max="90" value="32" step="1">
         <p class="help-text">Higher = stricter (fewer false positives)</p>
       </div>
-      
+
       <div class="threshold-item">
         <label>Prompt Confidence: <span id="promptThresholdValue">70%</span></label>
         <input type="range" id="promptThreshold" min="50" max="95" value="70" step="5">
         <p class="help-text">Higher = stricter (more certain matches only)</p>
       </div>
-      
+
       <div class="threshold-item">
         <label>Vision Confidence: <span id="visionThresholdValue">70%</span></label>
         <input type="range" id="visionThreshold" min="50" max="95" value="70" step="5">

@@ -6,6 +6,7 @@
   "author": "@maximtop",
   "scripts": {
     "build": "rollup -c",
+    "postbuild": "cd dist && zip -r extension.zip . -x '*.DS_Store'",
     "clean": "rm -rf dist",
     "dev": "pnpm clean && pnpm build:watch",
     "lint": "npx eslint \"src/**/*.{js,ts}\" && pnpm type-check",
