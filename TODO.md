@@ -1,1 +1,2 @@
+- [ ] Allow users to specify which websites the rules should apply to. For example, you should be able to set rules like `example.org#?#article:contains-meaning-prompt('advertisement')`.
 - [ ] If we have prompt rules and/or embeddings rules together with visual rules, we should start bluring only after screenshots were made
