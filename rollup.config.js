@@ -2,6 +2,7 @@ import commonjs from '@rollup/plugin-commonjs';
 import resolve from '@rollup/plugin-node-resolve';
 import swc from '@rollup/plugin-swc';
 import copy from 'rollup-plugin-copy';
+import { readFileSync } from 'fs';
 
 const swcOptions = {
     swc: {
@@ -34,6 +35,10 @@ const swcOptions = {
 const resolveOptions = {
     extensions: ['.ts', '.js', '.json'],
 };
+
+// Read version from package.json
+const packageJson = JSON.parse(readFileSync('./package.json', 'utf-8'));
+const version = packageJson.version;
 
 export default [
     // Background script
@@ -103,8 +108,16 @@ export default [
                         dest: 'dist/offscreen',
                     },
 
-                    // Copy manifest and locales
-                    { src: 'manifest.json', dest: 'dist' },
+                    // Copy manifest and update version from package.json
+                    {
+                        src: 'manifest.json',
+                        dest: 'dist',
+                        transform: (contents) => {
+                            const manifest = JSON.parse(contents.toString());
+                            manifest.version = version;
+                            return JSON.stringify(manifest, null, 2) + '\n';
+                        },
+                    },
                     { src: 'src/_locales', dest: 'dist' },
 
                     // Copy icons
