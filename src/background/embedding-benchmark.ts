@@ -111,12 +111,12 @@ export class EmbeddingBenchmark {
      */
     async init(): Promise<void> {
         try {
-            // FIXME use default in this case
+            // TODO use default in this case
             const storedEnabled = await Storage.get(
                 STORAGE_KEYS.EMBEDDING_BENCHMARK_ENABLED,
             ) as boolean | undefined;
 
-            // FIXME use default data (empty object) in this case
+            // TODO use default data (empty object) in this case
             const storedData = await Storage.get(
                 STORAGE_KEYS.EMBEDDING_BENCHMARK_DATA,
             ) as BenchmarkData | undefined;

@@ -50,6 +50,7 @@ class ContentManager {
 
     /**
      * Fetch rules from background and initialize all content scripts
+     * Rules are pre-filtered by the background script based on current page URL
      */
     async fetchAndInitialize(): Promise<void> {
         try {
@@ -63,23 +64,23 @@ class ContentManager {
                 return;
             }
 
-            // Fetch all rules once
-            logger.info('Fetching rules from background...');
+            // Fetch applicable rules (already filtered by background script)
+            logger.info('Fetching applicable rules from background...');
             const response = await Messaging.sendMessage({
                 action: ACTIONS.GET_RULES,
             });
 
-            const allRules = response.rules;
+            const applicableRules = response.rules;
+
+            logger.info(`Received ${applicableRules.length} applicable rules`);
 
             // Separate rules by type
-            const visionRules = allRules.filter(
-                (rule): rule is VisionRule => (
-                    rule.type === RULE_TYPE.VISION && rule.enabled
-                ),
+            const visionRules = applicableRules.filter(
+                (rule): rule is VisionRule => rule.type === RULE_TYPE.VISION,
             );
-            const analysisRules = allRules.filter(
-                (rule) => (rule.type === RULE_TYPE.EMBEDDING
-                    || rule.type === RULE_TYPE.PROMPT) && rule.enabled,
+            const analysisRules = applicableRules.filter(
+                (rule) => rule.type === RULE_TYPE.EMBEDDING
+                    || rule.type === RULE_TYPE.PROMPT,
             );
 
             logger.info(
@@ -89,7 +90,7 @@ class ContentManager {
 
             // Skip initialization if no enabled rules
             if (analysisRules.length === 0 && visionRules.length === 0) {
-                logger.info('No enabled rules, skipping initialization');
+                logger.info('No applicable rules, skipping initialization');
                 return;
             }
 

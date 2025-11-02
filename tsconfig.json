@@ -31,7 +31,9 @@
     "forceConsistentCasingInFileNames": true
   },
   "include": [
-    "src/**/*"
+    "src/**/*",
+    "*.config.ts",
+    "tests/**/*"
   ],
   "exclude": [
     "node_modules",

@@ -547,10 +547,11 @@
   </div>
 
   <div class="help">
-    <h4 id="ruleFormatLabel">📝 Rule format:</h4>
-    <code>selector:contains-meaning-embedding('text')</code><br>
-    <code>selector:contains-meaning-prompt('criteria')</code><br>
-    <code>selector:contains-meaning-vision('criteria')</code>
+    <p style="font-size: 12px; color: #666; margin: 10px 0;">
+      <a href="#" id="ruleFormatLink" style="color: #007cba; text-decoration: none;">
+        📝 View rule format examples and documentation →
+      </a>
+    </p>
   </div>
 
   <div class="section">
@@ -565,8 +566,8 @@
       <input
         type="text"
         id="ruleInput"
-        placeholder="div:contains-meaning-embedding('advertisement')"
-        maxlength="200"
+        placeholder="example.org#?#div:contains-meaning-embedding('ad')"
+        maxlength="250"
       >
       <button class="btn btn-primary" id="addRuleBtn">Add</button>
     </div>

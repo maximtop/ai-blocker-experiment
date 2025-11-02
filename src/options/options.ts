@@ -129,7 +129,78 @@ export class Options {
             // Set up event listeners
             this.setupEventListeners();
 
+            // Initialize tabs
+            this.setupTabs();
+
+            // Check URL hash and switch to appropriate tab
+            this.handleInitialTab();
+
+            // Listen for hash changes to switch tabs
+            this.setupHashChangeListener();
+
             logger.info('Options manager initialized');
+        });
+    }
+
+    /**
+     * Set up hash change listener for tab switching
+     * Allows external navigation via URL hash (e.g., from popup)
+     */
+    private setupHashChangeListener(): void {
+        window.addEventListener('hashchange', () => {
+            const hash = window.location.hash.substring(1); // Remove # prefix
+            if (hash) {
+                this.switchToTab(hash);
+            }
+        });
+    }
+
+    /**
+     * Handle initial tab selection based on URL hash
+     */
+    private handleInitialTab(): void {
+        const hash = window.location.hash.substring(1); // Remove # prefix
+        if (hash) {
+            this.switchToTab(hash);
+        }
+    }
+
+    /**
+     * Switch to a specific tab
+     * @param tabName Tab identifier (models, rules, data)
+     */
+    private switchToTab(tabName: string): void {
+        // Update buttons
+        document.querySelectorAll('.tab-button').forEach((btn) => {
+            btn.classList.remove('active');
+            if (btn.getAttribute('data-tab') === tabName) {
+                btn.classList.add('active');
+            }
+        });
+
+        // Update content
+        document.querySelectorAll('.tab-content').forEach((content) => {
+            content.classList.remove('active');
+        });
+        const targetTab = document.getElementById(`tab-${tabName}`);
+        if (targetTab) {
+            targetTab.classList.add('active');
+        }
+    }
+
+    /**
+     * Set up tab switching functionality
+     */
+    private setupTabs(): void {
+        const tabButtons = document.querySelectorAll('.tab-button');
+        tabButtons.forEach((button) => {
+            button.addEventListener('click', () => {
+                const tabName = button.getAttribute('data-tab');
+                if (tabName) {
+                    // Update URL hash - this will trigger hashchange event
+                    window.location.hash = tabName;
+                }
+            });
         });
     }
 

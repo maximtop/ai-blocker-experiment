@@ -36,6 +36,44 @@
       margin: 0;
     }
 
+    .tabs {
+      display: flex;
+      border-bottom: 2px solid #e0e0e0;
+      margin-bottom: 25px;
+      gap: 5px;
+    }
+
+    .tab-button {
+      padding: 12px 24px;
+      background: transparent;
+      border: none;
+      border-bottom: 3px solid transparent;
+      cursor: pointer;
+      font-size: 14px;
+      font-weight: 500;
+      color: #666;
+      transition: all 0.2s ease;
+    }
+
+    .tab-button:hover {
+      color: #007cba;
+      background: rgba(0, 124, 186, 0.05);
+    }
+
+    .tab-button.active {
+      color: #007cba;
+      border-bottom-color: #007cba;
+      font-weight: 600;
+    }
+
+    .tab-content {
+      display: none;
+    }
+
+    .tab-content.active {
+      display: block;
+    }
+
     .section {
       margin-bottom: 25px;
     }
@@ -213,22 +251,13 @@
       <p>Configure your API keys and model settings</p>
     </div>
 
-    <div class="api-info">
-      <h3>📋 How to get API Keys:</h3>
-      <p><strong>OpenAI:</strong></p>
-      <ul>
-        <li>Go to <a href="https://platform.openai.com/api-keys" target="_blank">OpenAI API Keys</a></li>
-        <li>Sign in and click "Create new secret key"</li>
-      </ul>
-      <p><strong>OpenRouter (for Google Gemini):</strong></p>
-      <ul>
-        <li>Go to <a href="https://openrouter.ai/keys" target="_blank">OpenRouter API Keys</a></li>
-        <li>Sign in and create a new API key</li>
-        <li>Access to Google Gemini models and more</li>
-      </ul>
-      <p style="font-size: 12px; color: #666;">Keep your keys secure - never share them publicly</p>
+    <div class="tabs">
+      <button class="tab-button active" data-tab="models">🤖 Models & API Keys</button>
+      <button class="tab-button" data-tab="rules">📝 Rule Format Guide</button>
+      <button class="tab-button" data-tab="data">🗑️ Data Management</button>
     </div>
 
+    <div id="tab-models" class="tab-content active">
     <div class="section">
       <h2>🤖 Model Configuration</h2>
 
@@ -303,6 +332,22 @@
           Only required if you want to use OpenRouter models (including Google Gemini). Your API key is stored securely and never shared. Validity will be checked when you use an OpenRouter model.
         </div>
       </div>
+
+      <div class="api-info" style="margin-top: 20px;">
+        <h3>📋 How to get API Keys:</h3>
+        <p><strong>OpenAI:</strong></p>
+        <ul>
+          <li>Go to <a href="https://platform.openai.com/api-keys" target="_blank">OpenAI API Keys</a></li>
+          <li>Sign in and click "Create new secret key"</li>
+        </ul>
+        <p><strong>OpenRouter (for Google Gemini):</strong></p>
+        <ul>
+          <li>Go to <a href="https://openrouter.ai/keys" target="_blank">OpenRouter API Keys</a></li>
+          <li>Sign in and create a new API key</li>
+          <li>Access to Google Gemini models and more</li>
+        </ul>
+        <p style="font-size: 12px; color: #666;">Keep your keys secure - never share them publicly</p>
+      </div>
     </div>
 
     <div class="section">
@@ -323,7 +368,65 @@
       <button class="btn btn-primary" id="saveBtn">💾 Save Settings</button>
       <button class="btn btn-secondary" id="clearCacheBtn" style="background: #6c757d; margin-top: 10px;">🗑️ Clear Analysis Cache</button>
     </div>
+    </div>
 
+    <div id="tab-rules" class="tab-content">
+    <div class="section">
+      <h2>📝 Rule Format Guide</h2>
+
+      <div style="background: #f8f9fa; border-left: 4px solid #007cba; padding: 15px; margin-bottom: 15px; border-radius: 4px;">
+        <h3 style="margin: 0 0 10px 0; font-size: 16px; color: #333;">Basic Rules (Apply to All Websites)</h3>
+        <p style="margin: 0 0 10px 0; font-size: 13px; color: #666;">These rules work on every website:</p>
+        <code style="display: block; background: white; padding: 8px; border-radius: 4px; margin: 5px 0; font-family: monospace;">div:contains-meaning-embedding('advertisement')</code>
+        <code style="display: block; background: white; padding: 8px; border-radius: 4px; margin: 5px 0; font-family: monospace;">article:contains-meaning-prompt('clickbait headline')</code>
+        <code style="display: block; background: white; padding: 8px; border-radius: 4px; margin: 5px 0; font-family: monospace;">img:contains-meaning-vision('ad banner')</code>
+      </div>
+
+      <div style="background: #f8f9fa; border-left: 4px solid #28a745; padding: 15px; margin-bottom: 15px; border-radius: 4px;">
+        <h3 style="margin: 0 0 10px 0; font-size: 16px; color: #333;">Domain-Specific Rules</h3>
+        <p style="margin: 0 0 10px 0; font-size: 13px; color: #666;">Target specific websites:</p>
+        <code style="display: block; background: white; padding: 8px; border-radius: 4px; margin: 5px 0; font-family: monospace;">example.org#?#div:contains-meaning-embedding('ad')</code>
+        <p style="margin: 10px 0 5px 0; font-size: 12px; color: #666;">Multiple domains:</p>
+        <code style="display: block; background: white; padding: 8px; border-radius: 4px; margin: 5px 0; font-family: monospace;">site1.com,site2.org#?#article:contains-meaning-prompt('sponsored')</code>
+      </div>
+
+      <div style="background: #f8f9fa; border-left: 4px solid #6f42c1; padding: 15px; margin-bottom: 15px; border-radius: 4px;">
+        <h3 style="margin: 0 0 10px 0; font-size: 16px; color: #333;">Wildcard Patterns</h3>
+        <p style="margin: 0 0 10px 0; font-size: 13px; color: #666;">Use wildcards (*) for flexible matching:</p>
+        <p style="margin: 5px 0; font-size: 12px; color: #666;">All subdomains:</p>
+        <code style="display: block; background: white; padding: 8px; border-radius: 4px; margin: 5px 0; font-family: monospace;">*.example.org#?#div:contains-meaning-embedding('ad')</code>
+        <p style="margin: 10px 0 5px 0; font-size: 12px; color: #666;">Any TLD (top-level domain):</p>
+        <code style="display: block; background: white; padding: 8px; border-radius: 4px; margin: 5px 0; font-family: monospace;">example.*#?#article:contains-meaning-prompt('promotional')</code>
+        <p style="margin: 10px 0 5px 0; font-size: 12px; color: #666;">Multiple wildcards:</p>
+        <code style="display: block; background: white; padding: 8px; border-radius: 4px; margin: 5px 0; font-family: monospace;">*.example.*#?#section:contains-meaning-vision('ad')</code>
+      </div>
+
+      <div style="background: #f8f9fa; border-left: 4px solid #ffc107; padding: 15px; margin-bottom: 15px; border-radius: 4px;">
+        <h3 style="margin: 0 0 10px 0; font-size: 16px; color: #333;">Path Patterns (For Specific URLs)</h3>
+        <p style="margin: 0 0 10px 0; font-size: 13px; color: #666;">Match specific URL paths on any website:</p>
+        <code style="display: block; background: white; padding: 8px; border-radius: 4px; margin: 5px 0; font-family: monospace;">/blog/article.html#?#div:contains-meaning-embedding('ad')</code>
+        <p style="margin: 5px 0; font-size: 11px; color: #888;">Matches: example.org/blog/article.html, test.com/blog/article.html, etc.</p>
+        <p style="margin: 10px 0 5px 0; font-size: 12px; color: #666;">With wildcards:</p>
+        <code style="display: block; background: white; padding: 8px; border-radius: 4px; margin: 5px 0; font-family: monospace;">*/product/*#?#article:contains-meaning-prompt('sponsored')</code>
+        <p style="margin: 5px 0; font-size: 11px; color: #888;">Matches: any site with /product/ in URL path</p>
+        <p style="margin: 10px 0 5px 0; font-size: 12px; color: #666;">Local file testing:</p>
+        <code style="display: block; background: white; padding: 8px; border-radius: 4px; margin: 5px 0; font-family: monospace;">test-page/index.html#?#div:contains-meaning-embedding('test')</code>
+      </div>
+
+      <div style="background: #e7f3ff; border-left: 4px solid #0056b3; padding: 15px; border-radius: 4px;">
+        <h3 style="margin: 0 0 10px 0; font-size: 16px; color: #333;">💡 Tips</h3>
+        <ul style="margin: 5px 0; padding-left: 20px; font-size: 13px; color: #555;">
+          <li>Start with specific selectors (div[class*="ad"]) for better performance</li>
+          <li>Use embedding rules for fast similarity matching</li>
+          <li>Use prompt rules for complex contextual analysis</li>
+          <li>Use vision rules for image-based advertisements</li>
+          <li>Combine domain patterns with different rule types as needed</li>
+        </ul>
+      </div>
+    </div>
+    </div>
+
+    <div id="tab-data" class="tab-content">
     <div class="section">
       <h2>🗑️ Reset & Clear Data</h2>
       <div style="background: #fff3cd; padding: 15px; border-radius: 4px; border: 1px solid #ffc107; margin-bottom: 15px;">
@@ -342,6 +445,7 @@
         </p>
       </div>
       <button class="btn btn-danger" id="clearBtn">🗑️ Clear All Data</button>
+    </div>
     </div>
 
     <div id="status" class="status" style="display: none;"></div>

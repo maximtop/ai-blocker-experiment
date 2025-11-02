@@ -5,6 +5,7 @@ import {
     GroundTruthLabel,
     SETTINGS_KEYS,
 } from '../shared/constants';
+import { filterRulesByUrl } from '../shared/domain-matcher';
 import { createLogger, getErrorMessage } from '../shared/logger';
 import type { CropBounds } from '../shared/offscreen-messages';
 import type { Rule } from '../shared/rule-types';
@@ -132,6 +133,10 @@ export type MessageMap = {
         message: { action: typeof ACTIONS.GET_RULES };
         response: GetRulesResponse;
     };
+    [ACTIONS.GET_ALL_RULES]: {
+        message: { action: typeof ACTIONS.GET_ALL_RULES };
+        response: GetRulesResponse;
+    };
     [ACTIONS.GET_THRESHOLDS]: {
         message: { action: typeof ACTIONS.GET_THRESHOLDS };
         response: GetThresholdsResponse;
@@ -178,7 +183,7 @@ export type MessageMap = {
             success: boolean;
             results: ElementRuleMatchResult[];
             error?: string
-        }; // FIXME duplication
+        }; // TODO duplication
     };
 };
 
@@ -221,13 +226,13 @@ export class MessageHandler {
     /**
      * Handle incoming message and route to appropriate handler
      * @param message Message from content script
-     * @param _sender Message sender information (unused)
+     * @param sender Message sender information
      * @param sendResponse Function to send response back
      * @returns True if response will be sent asynchronously
      */
     handle(
         message: ActionMessage,
-        _sender: chrome.runtime.MessageSender,
+        sender: chrome.runtime.MessageSender,
         sendResponse: (response?: unknown) => void,
     ): boolean {
         switch (message.action) {
@@ -250,7 +255,10 @@ export class MessageHandler {
                 return this.handleRemoveRule(message, sendResponse);
 
             case ACTIONS.GET_RULES:
-                return this.handleGetRules(sendResponse);
+                return this.handleGetRules(sender, sendResponse);
+
+            case ACTIONS.GET_ALL_RULES:
+                return this.handleGetAllRules(sendResponse);
 
             case ACTIONS.TOGGLE_RULE:
                 return this.handleToggleRule(message, sendResponse);
@@ -486,15 +494,52 @@ export class MessageHandler {
     }
 
     /**
-     * Handle GET_RULES action
+     * Handle GET_RULES action - filters rules for content scripts based on page URL
+     * URL scheme filtering (https://, http://, file://) is handled by filterRulesByUrl
+     * @param sender Message sender information
      * @param sendResponse Function to send response
      * @returns False for sync response
      */
     private handleGetRules(
+        sender: chrome.runtime.MessageSender,
         sendResponse: (response?: unknown) => void,
     ): boolean {
-        const rules = this.rules.getRules();
-        sendResponse({ success: true, rules });
+        const allRules = this.rules.getRules();
+
+        // Get sender URL from tab or frame
+        const senderUrl = sender.url || sender.tab?.url;
+
+        if (!senderUrl) {
+            // No URL available - return empty array
+            logger.warn('No sender URL available for GET_RULES');
+            sendResponse({ success: true, rules: [] });
+            return false;
+        }
+
+        // Filter rules based on URL (handles URL scheme filtering internally)
+        const applicableRules = filterRulesByUrl(allRules, senderUrl);
+
+        logger.info(
+            `Filtered ${allRules.length} rules to `
+            + `${applicableRules.length} applicable rules for ${senderUrl}`,
+        );
+
+        sendResponse({ success: true, rules: applicableRules });
+        return false; // Sync response
+    }
+
+    /**
+     * Handle GET_ALL_RULES action - returns all rules without filtering
+     * Used by popup and options pages for rule management
+     * @param sendResponse Function to send response
+     * @returns False for sync response
+     */
+    private handleGetAllRules(
+        sendResponse: (response?: unknown) => void,
+    ): boolean {
+        const allRules = this.rules.getRules();
+        logger.info(`Returning all ${allRules.length} rules`);
+        sendResponse({ success: true, rules: allRules });
         return false; // Sync response
     }
 
@@ -515,7 +560,7 @@ export class MessageHandler {
             );
             sendResponse({ success: toggled });
         })();
-        return true; // Async response
+        return true;
     }
 
     /**
@@ -531,7 +576,7 @@ export class MessageHandler {
         const ruleStr = message.ruleString;
         const isValid = RuleService.validateRuleFormat(ruleStr);
         sendResponse({ success: true, valid: isValid });
-        return false; // Sync response
+        return false;
     }
 
     /**
@@ -556,7 +601,7 @@ export class MessageHandler {
                 visionThreshold: thresholds.visionThreshold,
             });
         })();
-        return true; // Async response
+        return true;
     }
 
     /**
@@ -579,7 +624,7 @@ export class MessageHandler {
             logger.info(`Embedding threshold set to ${threshold}`);
             sendResponse({ success: true });
         })();
-        return true; // Async response
+        return true;
     }
 
     /**
@@ -602,7 +647,7 @@ export class MessageHandler {
             logger.info(`Prompt threshold set to ${threshold}`);
             sendResponse({ success: true });
         })();
-        return true; // Async response
+        return true;
     }
 
     /**
@@ -625,7 +670,7 @@ export class MessageHandler {
             logger.info(`Vision threshold set to ${threshold}`);
             sendResponse({ success: true });
         })();
-        return true; // Async response
+        return true;
     }
 
     /**
@@ -754,7 +799,7 @@ export class MessageHandler {
                 });
             }
         })();
-        return true; // Async response
+        return true;
     }
 
     /**

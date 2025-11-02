@@ -96,14 +96,8 @@ const logger = createLogger('ComponentName');
 logger.info('Debug message');  // ✅ Use createLogger with context
 ```
 
-**Alternative** (for global logger without preset context):
-```javascript
-import { logger } from '../shared/logger.ts';
-logger.info('ComponentName', 'Debug message');  // Context as first parameter
-```
-
 **Rationale**:
-- `createLogger()` is the preferred pattern as it presets the context, making log calls cleaner
+- Presets the context, making log calls cleaner
 - Centralizes all logging through a consistent interface
 - Avoids ESLint errors from direct console usage
 - Provides structured logging with context prefixes

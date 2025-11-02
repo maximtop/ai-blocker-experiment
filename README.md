@@ -24,6 +24,7 @@ If you encounter problems or have questions:
 - [Usage](#usage)
 - [How It Works](#how-it-works)
 - [Debug and Configuration](#debug-and-configuration)
+- [Testing](TESTING.md)
 - [Requirements](#requirements)
 - [Chrome Built-in AI](#chrome-built-in-ai-optional)
 - [Models Used](#models-used)
@@ -34,6 +35,7 @@ If you encounter problems or have questions:
 - `make init` - Install dependencies
 - `make build` - Build the extension (output to `dist/`, includes `extension.zip`)
 - `make lint` - Lint and type-check the code
+- `pnpm test` - Run unit tests
 
 ## Installation
 

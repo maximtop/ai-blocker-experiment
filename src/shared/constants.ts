@@ -226,6 +226,9 @@ export type RuleType = typeof RULE_TYPE[keyof typeof RULE_TYPE];
 
 // Rule format validation and parsing patterns
 export const RULE_PATTERNS = {
+    // Domain-rule separator in rule syntax: domain1,domain2#?#selector:contains-meaning-*('...')
+    DOMAIN_SEPARATOR: '#?#',
+
     // Validation patterns (for format checking)
     VALIDATION: {
         EMBEDDING: /^.+:contains-meaning-embedding\(['"].+['"]?\)$/,
@@ -289,7 +292,7 @@ export const PORT_NAMES = {
     STREAMING_ANALYSIS: 'streaming-analysis',
 } as const;
 
-// FIXME check actions actuality
+// TODO check actions actuality
 // Message actions for chrome.runtime communication
 export const ACTIONS = {
     ADD_RULE: 'addRule',
@@ -299,6 +302,7 @@ export const ACTIONS = {
     CLEAR_EMBEDDING_CACHE: 'clearEmbeddingCache',
     CROP_IMAGE: 'cropImage',
     DOWNLOAD_CANVAS_IMAGE: 'downloadCanvasImage',
+    GET_ALL_RULES: 'getAllRules',
     GET_BLOCKING_STATUS: 'getBlockingStatus',
     GET_RULES: 'getRules',
     GET_SETTINGS: 'getSettings',

@@ -45,10 +45,16 @@ interface CacheInfo {
  */
 export class AutoScreenshotObserver {
     /**
-     * Tracks elements already observed to prevent duplicate observations
+     * Tracks elements currently being processed (screenshot + analysis)
      * Uses WeakSet for automatic garbage collection of removed elements
      */
     private observedElements: WeakSet<Element>;
+
+    /**
+     * Tracks elements already registered with IntersectionObserver
+     * Prevents duplicate IntersectionObserver.observe() calls
+     */
+    private registeredElements: WeakSet<Element>;
 
     /**
      * Maps elements to their vision criteria for analysis
@@ -88,6 +94,7 @@ export class AutoScreenshotObserver {
 
     constructor() {
         this.observedElements = new WeakSet();
+        this.registeredElements = new WeakSet();
         this.elementCriteria = new WeakMap();
         this.visionRules = [];
         this.combinedSelector = null;
@@ -182,7 +189,8 @@ export class AutoScreenshotObserver {
         }
 
         if (element.matches(this.combinedSelector)) {
-            if (!this.observedElements.has(element)) {
+            // Check if already registered with IntersectionObserver
+            if (!this.registeredElements.has(element)) {
                 // Find which rule matched and store its criteria
                 const matchedRule = this.visionRules.find(
                     (rule) => element.matches(rule.selector),
@@ -191,6 +199,7 @@ export class AutoScreenshotObserver {
                 if (matchedRule) {
                     this.elementCriteria.set(element, matchedRule.criteria);
                     this.intersectionObserver.observe(element);
+                    this.registeredElements.add(element);
                     logger.info(
                         'Started observing element with criteria: '
                         + `${matchedRule.criteria}`,

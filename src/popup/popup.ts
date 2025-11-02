@@ -144,8 +144,15 @@ export class Popup {
             }
         });
 
-        this.settingsBtn.addEventListener('click', () => {
-            chrome.runtime.openOptionsPage();
+        this.settingsBtn.addEventListener('click', async () => {
+            await Popup.openOptionsTab('models');
+        });
+
+        // Open options page when clicking rule format link
+        const ruleFormatLink = document.getElementById('ruleFormatLink')!;
+        ruleFormatLink.addEventListener('click', async (e) => {
+            e.preventDefault();
+            await Popup.openOptionsTab('rules');
         });
 
         // Toggle blocking on/off
@@ -256,10 +263,6 @@ export class Popup {
         const subtitle = Translator.getMessage('ruleBasedBlocking');
         document.getElementById('subtitle')!.textContent = subtitle;
 
-        // Help section
-        const formatLabel = `📝 ${Translator.getMessage('ruleFormat')}`;
-        document.getElementById('ruleFormatLabel')!.textContent = formatLabel;
-
         // Main elements
         const rulesLabel = document.getElementById('blockingRulesLabel')!;
         rulesLabel.textContent = Translator.getMessage('blockingRules');
@@ -276,6 +279,7 @@ export class Popup {
 
         // Input placeholder and empty state
         const placeholder = Translator.getMessage('addRulePlaceholder');
+        // TODO try to get rid of as HTMLInputElement
         (document.getElementById('ruleInput') as HTMLInputElement)!.placeholder = placeholder;
         const emptyMsg = Translator.getMessage('emptyRules');
         document.getElementById('emptyRules')!.textContent = emptyMsg;
@@ -312,7 +316,7 @@ export class Popup {
      */
     async loadRulesFromBackground(): Promise<void> {
         const response = await Messaging.sendMessage({
-            action: ACTIONS.GET_RULES,
+            action: ACTIONS.GET_ALL_RULES,
         });
 
         if (response.success && response.rules) {
@@ -726,5 +730,39 @@ export class Popup {
         setTimeout(() => {
             this.status.style.display = 'none';
         }, 3000);
+    }
+
+    /**
+     * Open or switch to options page with specific tab
+     * @param tabName Tab to open (models, rules, data)
+     */
+    static async openOptionsTab(tabName: string): Promise<void> {
+        const optionsUrl = chrome.runtime.getURL('options/options.html');
+        const targetUrl = `${optionsUrl}#${tabName}`;
+
+        // Find existing options tab
+        const tabs = await chrome.tabs.query({});
+        const existingTab = tabs.find((tab) => (
+            tab.url?.startsWith(optionsUrl)
+        ));
+
+        if (existingTab && existingTab.id) {
+            // Update tab URL with new hash and focus it
+            // The hashchange event listener in options page will handle tab switching
+            await chrome.tabs.update(existingTab.id, {
+                url: targetUrl,
+                active: true,
+            });
+
+            // Focus the window containing the tab
+            if (existingTab.windowId) {
+                await chrome.windows.update(existingTab.windowId, {
+                    focused: true,
+                });
+            }
+        } else {
+            // Create new tab with hash
+            await chrome.tabs.create({ url: targetUrl });
+        }
     }
 }

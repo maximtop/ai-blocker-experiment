@@ -9,11 +9,37 @@ import { RULE_TYPE } from './constants';
  * Base rule interface
  */
 interface BaseRule {
+    /**
+     * Unique identifier for the rule
+     */
     id: string;
+
+    /**
+     * CSS selector to find elements on the page
+     */
     selector: string;
+
+    /**
+     * Whether the rule is currently active
+     */
     enabled: boolean;
+
+    /**
+     * Original rule string as entered by the user
+     */
     ruleString: string;
+
+    /**
+     * Type of rule (embedding, prompt, or vision)
+     */
     type: RuleType;
+
+    /**
+     * Domain patterns where this rule should apply
+     * Supports exact matches, wildcards (*.example.com), and path patterns
+     * Empty array means apply to all sites
+     */
+    domains: string[];
 }
 
 /**

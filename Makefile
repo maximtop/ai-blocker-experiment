@@ -12,3 +12,8 @@ build:
 .PHONY: lint
 lint:
 	pnpm lint
+
+# Run tests
+.PHONY: test
+test:
+	pnpm test

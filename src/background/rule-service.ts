@@ -5,6 +5,7 @@ import { RULE_PATTERNS, RULE_TYPE, SETTINGS_KEYS } from '../shared/constants';
 import { createLogger, getErrorMessage } from '../shared/logger';
 import type { Rule } from '../shared/rule-types';
 import { SettingsManager } from '../shared/settings';
+import { RuleParser } from './rule-parser';
 
 const logger = createLogger('RuleService');
 
@@ -81,8 +82,21 @@ export class RuleService {
      * @throws {Error} When rule format is invalid
      */
     static parseRule(ruleString: string): Rule {
+        // Parse domains using tokenizer
+        const { domains, rulePart } = RuleParser.parseRuleComponents(
+            ruleString,
+        );
+
+        // Validate domains if present
+        if (domains.length > 0) {
+            const validation = RuleParser.validateDomains(domains);
+            if (!validation.isValid) {
+                throw new Error(validation.error || 'Invalid domain format');
+            }
+        }
+
         // Try to match embedding-based rule first
-        let match = ruleString.match(RULE_PATTERNS.PARSING.EMBEDDING);
+        let match = rulePart.match(RULE_PATTERNS.PARSING.EMBEDDING);
         if (match) {
             const [, selector, containsText] = match;
             return {
@@ -92,11 +106,12 @@ export class RuleService {
                 enabled: true,
                 ruleString,
                 type: RULE_TYPE.EMBEDDING,
+                domains,
             };
         }
 
         // Try to match LLM prompt-based rule
-        match = ruleString.match(RULE_PATTERNS.PARSING.PROMPT);
+        match = rulePart.match(RULE_PATTERNS.PARSING.PROMPT);
         if (match) {
             const [, selector, prompt] = match;
             return {
@@ -106,11 +121,12 @@ export class RuleService {
                 enabled: true,
                 ruleString,
                 type: RULE_TYPE.PROMPT,
+                domains,
             };
         }
 
         // Try to match vision-based rule
-        match = ruleString.match(RULE_PATTERNS.PARSING.VISION);
+        match = rulePart.match(RULE_PATTERNS.PARSING.VISION);
         if (match) {
             const [, selector, criteria] = match;
             return {
@@ -120,10 +136,11 @@ export class RuleService {
                 enabled: true,
                 ruleString,
                 type: RULE_TYPE.VISION,
+                domains,
             };
         }
 
-        throw new Error(`Invalid rule format: ${ruleString}`);
+        throw new Error(`Invalid rule format: ${rulePart}`);
     }
 
     /**
@@ -188,16 +205,6 @@ export class RuleService {
             return true;
         }
         return false;
-    }
-
-    /**
-     * Clear all rules
-     */
-    async clearRules(): Promise<void> {
-        const count = this.rules.length;
-        this.rules = [];
-        await this.saveRulesToStorage();
-        logger.info(`Cleared ${count} rules`);
     }
 
     /**

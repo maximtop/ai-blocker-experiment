@@ -1,6 +1,6 @@
 {
   "name": "ai-adblocker-experiment",
-  "version": "1.0.0",
+  "version": "1.1.0",
   "description": "Extension for blocking unwanted content using llms",
   "license": "MIT",
   "author": "@maximtop",
@@ -10,7 +10,8 @@
     "clean": "rm -rf dist",
     "dev": "pnpm clean && pnpm build:watch",
     "lint": "npx eslint \"src/**/*.{js,ts}\" && pnpm type-check",
-    "type-check": "tsc --noEmit"
+    "type-check": "tsc --noEmit",
+    "test": "vitest run"
   },
   "devDependencies": {
     "@rollup/plugin-commonjs": "^25.0.7",
@@ -31,7 +32,8 @@
     "rollup": "^4.9.1",
     "rollup-plugin-copy": "^3.5.0",
     "tslib": "^2.8.1",
-    "typescript": "^5.8.3"
+    "typescript": "^5.8.3",
+    "vitest": "^4.0.6"
   },
   "type": "module",
   "dependencies": {

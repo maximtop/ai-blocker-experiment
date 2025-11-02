@@ -28,7 +28,7 @@ interface BlurEntry {
     resizeObserver: ResizeObserver;
 }
 
-// FIXME make sure that blur is only for visible elements,
+// TODO make sure that blur is only for visible elements,
 // this is needed for performance
 /**
  * BlurManager: manages per-element blur overlays

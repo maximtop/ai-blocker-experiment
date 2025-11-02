@@ -32,7 +32,9 @@ module.exports = {
             devDependencies: [
                 '**/*.config.js',
                 '**/*.config.cjs',
+                '**/*.config.ts',
                 'rollup.config.js',
+                'tests/**/*',
             ],
         }],
         'no-restricted-globals': 'off',
