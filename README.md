@@ -1,6 +1,14 @@
 # Experimental AI Ad Blocker
 
+[![Chrome Web Store Version](https://img.shields.io/chrome-web-store/v/icmfnmnifkggchbpaikgbpoenjgkkofb?style=flat-square&logo=googlechrome&logoColor=white&label=version)](https://chromewebstore.google.com/detail/ai-adblocker/icmfnmnifkggchbpaikgbpoenjgkkofb)
+
 Extension for blocking unwanted content using AI-powered rules with both LLM embeddings and direct prompt-based analysis.
+
+## 🌐 Get the Extension
+
+**[Install from Chrome Web Store](https://chromewebstore.google.com/detail/ai-adblocker/icmfnmnifkggchbpaikgbpoenjgkkofb)**
+
+Alternatively, you can build and install it manually from source (see [Build](#build) and [Installation](#installation) sections below).
 
 ## ⚠️ Disclaimer
 
