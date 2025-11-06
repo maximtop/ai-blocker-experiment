@@ -1,0 +1,68 @@
+{
+  "extensionName": {
+    "message": "Bloqueur de Publicités IA",
+    "description": "Nom de l'extension"
+  },
+  "extensionDescription": {
+    "message": "Bloquez les publicités en utilisant les embeddings LLM et des règles définies par l'utilisateur",
+    "description": "Description de l'extension"
+  },
+  "ruleBasedBlocking": {
+    "message": "Blocage basé sur des règles",
+    "description": "Sous-titre dans la popup"
+  },
+  "ruleFormat": {
+    "message": "Format de règle :",
+    "description": "Étiquette d'aide du format de règle"
+  },
+  "blockingRules": {
+    "message": "Règles de blocage :",
+    "description": "Étiquette de la liste des règles"
+  },
+  "addRulePlaceholder": {
+    "message": "div:contains('publicité')",
+    "description": "Texte de placeholder pour l'entrée de règle"
+  },
+  "addButton": {
+    "message": "Ajouter",
+    "description": "Texte du bouton ajouter une règle"
+  },
+  "emptyRules": {
+    "message": "Ajoutez des règles pour bloquer les publicités",
+    "description": "Message lorsqu'aucune règle n'est ajoutée"
+  },
+  "enterRule": {
+    "message": "Entrez une règle",
+    "description": "Message d'erreur pour une entrée de règle vide"
+  },
+  "invalidFormat": {
+    "message": "Format invalide. Utilisez : sélecteur:contains-meaning-embedding('texte') ou sélecteur:contains-meaning-prompt('critère')",
+    "description": "Message d'erreur pour un format de règle invalide"
+  },
+  "ruleExists": {
+    "message": "Cette règle existe déjà",
+    "description": "Message d'erreur pour une règle en double"
+  },
+  "ruleAdded": {
+    "message": "Règle ajoutée : $RULE$",
+    "description": "Message de succès pour une règle ajoutée",
+    "placeholders": {
+      "rule": {
+        "content": "$1",
+        "example": "div:contains('pub')"
+      }
+    }
+  },
+  "ruleRemoved": {
+    "message": "Supprimé : $RULE$",
+    "description": "Message de succès pour une règle supprimée",
+    "placeholders": {
+      "rule": {
+        "content": "$1",
+        "example": "div:contains('pub')"
+      }
+    }
+  }
+}
+
+

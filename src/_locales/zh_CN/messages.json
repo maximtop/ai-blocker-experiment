@@ -1,0 +1,68 @@
+{
+  "extensionName": {
+    "message": "AI广告拦截器",
+    "description": "扩展名称"
+  },
+  "extensionDescription": {
+    "message": "使用LLM嵌入和用户定义规则拦截广告",
+    "description": "扩展描述"
+  },
+  "ruleBasedBlocking": {
+    "message": "基于规则的拦截",
+    "description": "弹出窗口中的副标题"
+  },
+  "ruleFormat": {
+    "message": "规则格式：",
+    "description": "规则格式帮助标签"
+  },
+  "blockingRules": {
+    "message": "拦截规则：",
+    "description": "规则列表标签"
+  },
+  "addRulePlaceholder": {
+    "message": "div:contains('广告')",
+    "description": "规则输入占位符文本"
+  },
+  "addButton": {
+    "message": "添加",
+    "description": "添加规则按钮文本"
+  },
+  "emptyRules": {
+    "message": "添加规则以拦截广告",
+    "description": "没有添加规则时的消息"
+  },
+  "enterRule": {
+    "message": "请输入规则",
+    "description": "空规则输入的错误消息"
+  },
+  "invalidFormat": {
+    "message": "格式无效。请使用：选择器:contains-meaning-embedding('文本') 或 选择器:contains-meaning-prompt('条件')",
+    "description": "无效规则格式的错误消息"
+  },
+  "ruleExists": {
+    "message": "该规则已存在",
+    "description": "重复规则的错误消息"
+  },
+  "ruleAdded": {
+    "message": "已添加规则：$RULE$",
+    "description": "添加规则的成功消息",
+    "placeholders": {
+      "rule": {
+        "content": "$1",
+        "example": "div:contains('广告')"
+      }
+    }
+  },
+  "ruleRemoved": {
+    "message": "已删除：$RULE$",
+    "description": "删除规则的成功消息",
+    "placeholders": {
+      "rule": {
+        "content": "$1",
+        "example": "div:contains('广告')"
+      }
+    }
+  }
+}
+
+

@@ -1,0 +1,68 @@
+{
+  "extensionName": {
+    "message": "Blocco Pubblicità IA",
+    "description": "Nome dell'estensione"
+  },
+  "extensionDescription": {
+    "message": "Blocca gli annunci utilizzando gli embedding LLM e regole definite dall'utente",
+    "description": "Descrizione dell'estensione"
+  },
+  "ruleBasedBlocking": {
+    "message": "Blocco basato su regole",
+    "description": "Sottotitolo nel popup"
+  },
+  "ruleFormat": {
+    "message": "Formato regola:",
+    "description": "Etichetta di aiuto formato regola"
+  },
+  "blockingRules": {
+    "message": "Regole di blocco:",
+    "description": "Etichetta elenco regole"
+  },
+  "addRulePlaceholder": {
+    "message": "div:contains('pubblicità')",
+    "description": "Testo segnaposto per l'input della regola"
+  },
+  "addButton": {
+    "message": "Aggiungi",
+    "description": "Testo del pulsante aggiungi regola"
+  },
+  "emptyRules": {
+    "message": "Aggiungi regole per bloccare gli annunci",
+    "description": "Messaggio quando non sono state aggiunte regole"
+  },
+  "enterRule": {
+    "message": "Inserisci una regola",
+    "description": "Messaggio di errore per input regola vuoto"
+  },
+  "invalidFormat": {
+    "message": "Formato non valido. Usa: selettore:contains-meaning-embedding('testo') o selettore:contains-meaning-prompt('criterio')",
+    "description": "Messaggio di errore per formato regola non valido"
+  },
+  "ruleExists": {
+    "message": "Questa regola esiste già",
+    "description": "Messaggio di errore per regola duplicata"
+  },
+  "ruleAdded": {
+    "message": "Regola aggiunta: $RULE$",
+    "description": "Messaggio di successo per regola aggiunta",
+    "placeholders": {
+      "rule": {
+        "content": "$1",
+        "example": "div:contains('annuncio')"
+      }
+    }
+  },
+  "ruleRemoved": {
+    "message": "Rimosso: $RULE$",
+    "description": "Messaggio di successo per regola rimossa",
+    "placeholders": {
+      "rule": {
+        "content": "$1",
+        "example": "div:contains('annuncio')"
+      }
+    }
+  }
+}
+
+

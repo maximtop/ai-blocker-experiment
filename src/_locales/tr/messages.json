@@ -1,0 +1,68 @@
+{
+  "extensionName": {
+    "message": "AI Reklam Engelleyici",
+    "description": "Uzantı adı"
+  },
+  "extensionDescription": {
+    "message": "LLM gömme ve kullanıcı tanımlı kurallar kullanarak reklamları engelleyin",
+    "description": "Uzantı açıklaması"
+  },
+  "ruleBasedBlocking": {
+    "message": "Kural tabanlı engelleme",
+    "description": "Popup'taki alt başlık"
+  },
+  "ruleFormat": {
+    "message": "Kural formatı:",
+    "description": "Kural formatı yardım etiketi"
+  },
+  "blockingRules": {
+    "message": "Engelleme kuralları:",
+    "description": "Kural listesi etiketi"
+  },
+  "addRulePlaceholder": {
+    "message": "div:contains('reklam')",
+    "description": "Kural girişi yer tutucu metni"
+  },
+  "addButton": {
+    "message": "Ekle",
+    "description": "Kural ekle düğmesi metni"
+  },
+  "emptyRules": {
+    "message": "Reklamları engellemek için kurallar ekleyin",
+    "description": "Kural eklenmediğinde mesaj"
+  },
+  "enterRule": {
+    "message": "Bir kural girin",
+    "description": "Boş kural girişi için hata mesajı"
+  },
+  "invalidFormat": {
+    "message": "Geçersiz format. Kullanın: seçici:contains-meaning-embedding('metin') veya seçici:contains-meaning-prompt('kriter')",
+    "description": "Geçersiz kural formatı için hata mesajı"
+  },
+  "ruleExists": {
+    "message": "Bu kural zaten mevcut",
+    "description": "Tekrar eden kural için hata mesajı"
+  },
+  "ruleAdded": {
+    "message": "Kural eklendi: $RULE$",
+    "description": "Eklenen kural için başarı mesajı",
+    "placeholders": {
+      "rule": {
+        "content": "$1",
+        "example": "div:contains('reklam')"
+      }
+    }
+  },
+  "ruleRemoved": {
+    "message": "Kaldırıldı: $RULE$",
+    "description": "Kaldırılan kural için başarı mesajı",
+    "placeholders": {
+      "rule": {
+        "content": "$1",
+        "example": "div:contains('reklam')"
+      }
+    }
+  }
+}
+
+

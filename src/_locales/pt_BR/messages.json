@@ -1,0 +1,68 @@
+{
+  "extensionName": {
+    "message": "Bloqueador de Anúncios IA",
+    "description": "Nome da extensão"
+  },
+  "extensionDescription": {
+    "message": "Bloqueie anúncios usando embeddings LLM e regras definidas pelo usuário",
+    "description": "Descrição da extensão"
+  },
+  "ruleBasedBlocking": {
+    "message": "Bloqueio baseado em regras",
+    "description": "Subtítulo no popup"
+  },
+  "ruleFormat": {
+    "message": "Formato de regra:",
+    "description": "Rótulo de ajuda do formato de regra"
+  },
+  "blockingRules": {
+    "message": "Regras de bloqueio:",
+    "description": "Rótulo da lista de regras"
+  },
+  "addRulePlaceholder": {
+    "message": "div:contains('propaganda')",
+    "description": "Texto de espaço reservado para entrada de regra"
+  },
+  "addButton": {
+    "message": "Adicionar",
+    "description": "Texto do botão adicionar regra"
+  },
+  "emptyRules": {
+    "message": "Adicione regras para bloquear anúncios",
+    "description": "Mensagem quando nenhuma regra foi adicionada"
+  },
+  "enterRule": {
+    "message": "Digite uma regra",
+    "description": "Mensagem de erro para entrada de regra vazia"
+  },
+  "invalidFormat": {
+    "message": "Formato inválido. Use: seletor:contains-meaning-embedding('texto') ou seletor:contains-meaning-prompt('critério')",
+    "description": "Mensagem de erro para formato de regra inválido"
+  },
+  "ruleExists": {
+    "message": "Esta regra já existe",
+    "description": "Mensagem de erro para regra duplicada"
+  },
+  "ruleAdded": {
+    "message": "Regra adicionada: $RULE$",
+    "description": "Mensagem de sucesso para regra adicionada",
+    "placeholders": {
+      "rule": {
+        "content": "$1",
+        "example": "div:contains('anúncio')"
+      }
+    }
+  },
+  "ruleRemoved": {
+    "message": "Removido: $RULE$",
+    "description": "Mensagem de sucesso para regra removida",
+    "placeholders": {
+      "rule": {
+        "content": "$1",
+        "example": "div:contains('anúncio')"
+      }
+    }
+  }
+}
+
+

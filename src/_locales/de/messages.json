@@ -1,0 +1,68 @@
+{
+  "extensionName": {
+    "message": "KI-Werbeblocker",
+    "description": "Name der Erweiterung"
+  },
+  "extensionDescription": {
+    "message": "Blockiere Werbung mithilfe von LLM-Einbettungen und benutzerdefinierten Regeln",
+    "description": "Beschreibung der Erweiterung"
+  },
+  "ruleBasedBlocking": {
+    "message": "Regelbasiertes Blockieren",
+    "description": "Untertitel im Popup"
+  },
+  "ruleFormat": {
+    "message": "Regelformat:",
+    "description": "Label für Regelformat-Hilfe"
+  },
+  "blockingRules": {
+    "message": "Blockierregeln:",
+    "description": "Label für Regelliste"
+  },
+  "addRulePlaceholder": {
+    "message": "div:contains('Werbung')",
+    "description": "Platzhaltertext für Regeleingabe"
+  },
+  "addButton": {
+    "message": "Hinzufügen",
+    "description": "Text der Regel-hinzufügen-Schaltfläche"
+  },
+  "emptyRules": {
+    "message": "Füge Regeln hinzu, um Werbung zu blockieren",
+    "description": "Nachricht, wenn keine Regeln hinzugefügt wurden"
+  },
+  "enterRule": {
+    "message": "Gib eine Regel ein",
+    "description": "Fehlermeldung für leere Regeleingabe"
+  },
+  "invalidFormat": {
+    "message": "Ungültiges Format. Verwende: Selektor:contains-meaning-embedding('Text') oder Selektor:contains-meaning-prompt('Kriterium')",
+    "description": "Fehlermeldung für ungültiges Regelformat"
+  },
+  "ruleExists": {
+    "message": "Diese Regel existiert bereits",
+    "description": "Fehlermeldung für doppelte Regel"
+  },
+  "ruleAdded": {
+    "message": "Regel hinzugefügt: $RULE$",
+    "description": "Erfolgsmeldung für hinzugefügte Regel",
+    "placeholders": {
+      "rule": {
+        "content": "$1",
+        "example": "div:contains('Werbung')"
+      }
+    }
+  },
+  "ruleRemoved": {
+    "message": "Entfernt: $RULE$",
+    "description": "Erfolgsmeldung für entfernte Regel",
+    "placeholders": {
+      "rule": {
+        "content": "$1",
+        "example": "div:contains('Werbung')"
+      }
+    }
+  }
+}
+
+

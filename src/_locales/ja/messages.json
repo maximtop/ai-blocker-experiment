@@ -1,0 +1,68 @@
+{
+  "extensionName": {
+    "message": "AI広告ブロッカー",
+    "description": "拡張機能の名前"
+  },
+  "extensionDescription": {
+    "message": "LLM埋め込みとユーザー定義ルールを使用して広告をブロック",
+    "description": "拡張機能の説明"
+  },
+  "ruleBasedBlocking": {
+    "message": "ルールベースのブロック",
+    "description": "ポップアップのサブタイトル"
+  },
+  "ruleFormat": {
+    "message": "ルール形式：",
+    "description": "ルール形式のヘルプラベル"
+  },
+  "blockingRules": {
+    "message": "ブロックルール：",
+    "description": "ルールリストのラベル"
+  },
+  "addRulePlaceholder": {
+    "message": "div:contains('広告')",
+    "description": "ルール入力のプレースホルダーテキスト"
+  },
+  "addButton": {
+    "message": "追加",
+    "description": "ルール追加ボタンのテキスト"
+  },
+  "emptyRules": {
+    "message": "広告をブロックするルールを追加してください",
+    "description": "ルールが追加されていない場合のメッセージ"
+  },
+  "enterRule": {
+    "message": "ルールを入力してください",
+    "description": "空のルール入力のエラーメッセージ"
+  },
+  "invalidFormat": {
+    "message": "無効な形式です。次を使用してください：selector:contains-meaning-embedding('テキスト') または selector:contains-meaning-prompt('基準')",
+    "description": "無効なルール形式のエラーメッセージ"
+  },
+  "ruleExists": {
+    "message": "このルールは既に存在します",
+    "description": "重複ルールのエラーメッセージ"
+  },
+  "ruleAdded": {
+    "message": "ルールを追加しました：$RULE$",
+    "description": "ルール追加の成功メッセージ",
+    "placeholders": {
+      "rule": {
+        "content": "$1",
+        "example": "div:contains('広告')"
+      }
+    }
+  },
+  "ruleRemoved": {
+    "message": "削除しました：$RULE$",
+    "description": "ルール削除の成功メッセージ",
+    "placeholders": {
+      "rule": {
+        "content": "$1",
+        "example": "div:contains('広告')"
+      }
+    }
+  }
+}
+
+

@@ -1,0 +1,68 @@
+{
+  "extensionName": {
+    "message": "AI 광고 차단기",
+    "description": "확장 프로그램 이름"
+  },
+  "extensionDescription": {
+    "message": "LLM 임베딩과 사용자 정의 규칙을 사용하여 광고 차단",
+    "description": "확장 프로그램 설명"
+  },
+  "ruleBasedBlocking": {
+    "message": "규칙 기반 차단",
+    "description": "팝업의 부제목"
+  },
+  "ruleFormat": {
+    "message": "규칙 형식:",
+    "description": "규칙 형식 도움말 레이블"
+  },
+  "blockingRules": {
+    "message": "차단 규칙:",
+    "description": "규칙 목록 레이블"
+  },
+  "addRulePlaceholder": {
+    "message": "div:contains('광고')",
+    "description": "규칙 입력 플레이스홀더 텍스트"
+  },
+  "addButton": {
+    "message": "추가",
+    "description": "규칙 추가 버튼 텍스트"
+  },
+  "emptyRules": {
+    "message": "광고를 차단할 규칙을 추가하세요",
+    "description": "규칙이 추가되지 않았을 때 메시지"
+  },
+  "enterRule": {
+    "message": "규칙을 입력하세요",
+    "description": "빈 규칙 입력에 대한 오류 메시지"
+  },
+  "invalidFormat": {
+    "message": "잘못된 형식입니다. 다음을 사용하세요: selector:contains-meaning-embedding('텍스트') 또는 selector:contains-meaning-prompt('기준')",
+    "description": "잘못된 규칙 형식에 대한 오류 메시지"
+  },
+  "ruleExists": {
+    "message": "이 규칙은 이미 존재합니다",
+    "description": "중복 규칙에 대한 오류 메시지"
+  },
+  "ruleAdded": {
+    "message": "규칙 추가됨: $RULE$",
+    "description": "규칙 추가 성공 메시지",
+    "placeholders": {
+      "rule": {
+        "content": "$1",
+        "example": "div:contains('광고')"
+      }
+    }
+  },
+  "ruleRemoved": {
+    "message": "제거됨: $RULE$",
+    "description": "규칙 제거 성공 메시지",
+    "placeholders": {
+      "rule": {
+        "content": "$1",
+        "example": "div:contains('광고')"
+      }
+    }
+  }
+}
+
+

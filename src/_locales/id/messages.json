@@ -1,0 +1,68 @@
+{
+  "extensionName": {
+    "message": "Pemblokir Iklan AI",
+    "description": "Nama ekstensi"
+  },
+  "extensionDescription": {
+    "message": "Blokir iklan menggunakan embedding LLM dan aturan yang ditentukan pengguna",
+    "description": "Deskripsi ekstensi"
+  },
+  "ruleBasedBlocking": {
+    "message": "Pemblokiran berbasis aturan",
+    "description": "Subjudul di popup"
+  },
+  "ruleFormat": {
+    "message": "Format aturan:",
+    "description": "Label bantuan format aturan"
+  },
+  "blockingRules": {
+    "message": "Aturan pemblokiran:",
+    "description": "Label daftar aturan"
+  },
+  "addRulePlaceholder": {
+    "message": "div:contains('iklan')",
+    "description": "Teks placeholder untuk input aturan"
+  },
+  "addButton": {
+    "message": "Tambah",
+    "description": "Teks tombol tambah aturan"
+  },
+  "emptyRules": {
+    "message": "Tambahkan aturan untuk memblokir iklan",
+    "description": "Pesan ketika tidak ada aturan yang ditambahkan"
+  },
+  "enterRule": {
+    "message": "Masukkan aturan",
+    "description": "Pesan kesalahan untuk input aturan kosong"
+  },
+  "invalidFormat": {
+    "message": "Format tidak valid. Gunakan: selector:contains-meaning-embedding('teks') atau selector:contains-meaning-prompt('kriteria')",
+    "description": "Pesan kesalahan untuk format aturan tidak valid"
+  },
+  "ruleExists": {
+    "message": "Aturan ini sudah ada",
+    "description": "Pesan kesalahan untuk aturan duplikat"
+  },
+  "ruleAdded": {
+    "message": "Aturan ditambahkan: $RULE$",
+    "description": "Pesan sukses untuk aturan yang ditambahkan",
+    "placeholders": {
+      "rule": {
+        "content": "$1",
+        "example": "div:contains('iklan')"
+      }
+    }
+  },
+  "ruleRemoved": {
+    "message": "Dihapus: $RULE$",
+    "description": "Pesan sukses untuk aturan yang dihapus",
+    "placeholders": {
+      "rule": {
+        "content": "$1",
+        "example": "div:contains('iklan')"
+      }
+    }
+  }
+}
+
+

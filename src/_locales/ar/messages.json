@@ -1,0 +1,68 @@
+{
+  "extensionName": {
+    "message": "مانع الإعلانات بالذكاء الاصطناعي",
+    "description": "اسم الإضافة"
+  },
+  "extensionDescription": {
+    "message": "حظر الإعلانات باستخدام تضمينات LLM والقواعد المحددة من قبل المستخدم",
+    "description": "وصف الإضافة"
+  },
+  "ruleBasedBlocking": {
+    "message": "الحظر المستند إلى القواعد",
+    "description": "العنوان الفرعي في النافذة المنبثقة"
+  },
+  "ruleFormat": {
+    "message": "تنسيق القاعدة:",
+    "description": "تسمية مساعدة تنسيق القاعدة"
+  },
+  "blockingRules": {
+    "message": "قواعد الحظر:",
+    "description": "تسمية قائمة القواعد"
+  },
+  "addRulePlaceholder": {
+    "message": "div:contains('إعلان')",
+    "description": "نص عنصر نائب لإدخال القاعدة"
+  },
+  "addButton": {
+    "message": "إضافة",
+    "description": "نص زر إضافة القاعدة"
+  },
+  "emptyRules": {
+    "message": "أضف قواعد لحظر الإعلانات",
+    "description": "رسالة عند عدم إضافة قواعد"
+  },
+  "enterRule": {
+    "message": "أدخل قاعدة",
+    "description": "رسالة خطأ لإدخال قاعدة فارغة"
+  },
+  "invalidFormat": {
+    "message": "تنسيق غير صالح. استخدم: محدد:contains-meaning-embedding('نص') أو محدد:contains-meaning-prompt('معايير')",
+    "description": "رسالة خطأ لتنسيق قاعدة غير صالح"
+  },
+  "ruleExists": {
+    "message": "هذه القاعدة موجودة بالفعل",
+    "description": "رسالة خطأ لقاعدة مكررة"
+  },
+  "ruleAdded": {
+    "message": "تمت إضافة القاعدة: $RULE$",
+    "description": "رسالة نجاح لإضافة القاعدة",
+    "placeholders": {
+      "rule": {
+        "content": "$1",
+        "example": "div:contains('إعلان')"
+      }
+    }
+  },
+  "ruleRemoved": {
+    "message": "تمت الإزالة: $RULE$",
+    "description": "رسالة نجاح لإزالة القاعدة",
+    "placeholders": {
+      "rule": {
+        "content": "$1",
+        "example": "div:contains('إعلان')"
+      }
+    }
+  }
+}
+
+
