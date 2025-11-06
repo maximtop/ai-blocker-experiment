@@ -1,6 +1,6 @@
 {
   "name": "ai-adblocker-experiment",
-  "version": "1.1.0",
+  "version": "1.2.0",
   "description": "Extension for blocking unwanted content using llms",
   "license": "MIT",
   "author": "@maximtop",
