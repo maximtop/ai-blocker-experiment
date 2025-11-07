@@ -19,10 +19,6 @@
     "message": "Blockierregeln:",
     "description": "Label für Regelliste"
   },
-  "addRulePlaceholder": {
-    "message": "div:contains('Werbung')",
-    "description": "Platzhaltertext für Regeleingabe"
-  },
   "addButton": {
     "message": "Hinzufügen",
     "description": "Text der Regel-hinzufügen-Schaltfläche"

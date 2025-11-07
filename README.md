@@ -59,6 +59,18 @@ If you encounter problems or have questions:
 "matches": ["https://*.example.com/*", "https://anothersite.com/*"]
 ```
 
+### Testing with Local Files
+
+To test the extension on local HTML files (like those in the `test-page/` directory):
+
+1. Navigate to `chrome://extensions/`
+2. Find the AI AdBlocker extension
+3. Click the "Details" button
+4. Scroll down and enable **"Allow access to file URLs"**
+5. Open local test files with `file://` URLs in your browser
+
+**Note:** Chrome extensions don't have access to `file://` URLs by default for security reasons. This permission must be enabled manually even though the extension requests `<all_urls>` permission.
+
 ## Usage
 
 1. **Rule Configuration**:

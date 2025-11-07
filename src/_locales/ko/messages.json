@@ -19,10 +19,6 @@
     "message": "차단 규칙:",
     "description": "규칙 목록 레이블"
   },
-  "addRulePlaceholder": {
-    "message": "div:contains('광고')",
-    "description": "규칙 입력 플레이스홀더 텍스트"
-  },
   "addButton": {
     "message": "추가",
     "description": "규칙 추가 버튼 텍스트"

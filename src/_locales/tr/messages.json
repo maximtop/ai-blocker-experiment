@@ -19,10 +19,6 @@
     "message": "Engelleme kuralları:",
     "description": "Kural listesi etiketi"
   },
-  "addRulePlaceholder": {
-    "message": "div:contains('reklam')",
-    "description": "Kural girişi yer tutucu metni"
-  },
   "addButton": {
     "message": "Ekle",
     "description": "Kural ekle düğmesi metni"

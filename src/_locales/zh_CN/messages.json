@@ -19,10 +19,6 @@
     "message": "拦截规则：",
     "description": "规则列表标签"
   },
-  "addRulePlaceholder": {
-    "message": "div:contains('广告')",
-    "description": "规则输入占位符文本"
-  },
   "addButton": {
     "message": "添加",
     "description": "添加规则按钮文本"

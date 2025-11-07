@@ -19,10 +19,6 @@
     "message": "Aturan pemblokiran:",
     "description": "Label daftar aturan"
   },
-  "addRulePlaceholder": {
-    "message": "div:contains('iklan')",
-    "description": "Teks placeholder untuk input aturan"
-  },
   "addButton": {
     "message": "Tambah",
     "description": "Teks tombol tambah aturan"

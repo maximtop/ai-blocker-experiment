@@ -19,10 +19,6 @@
     "message": "ブロックルール：",
     "description": "ルールリストのラベル"
   },
-  "addRulePlaceholder": {
-    "message": "div:contains('広告')",
-    "description": "ルール入力のプレースホルダーテキスト"
-  },
   "addButton": {
     "message": "追加",
     "description": "ルール追加ボタンのテキスト"

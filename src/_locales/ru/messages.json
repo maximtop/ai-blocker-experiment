@@ -19,10 +19,6 @@
     "message": "Правила блокировки:",
     "description": "Заголовок списка правил"
   },
-  "addRulePlaceholder": {
-    "message": "div:contains('реклама')",
-    "description": "Placeholder для ввода правила"
-  },
   "addButton": {
     "message": "Добавить",
     "description": "Текст кнопки добавления"

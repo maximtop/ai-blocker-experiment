@@ -19,10 +19,6 @@
     "message": "قواعد الحظر:",
     "description": "تسمية قائمة القواعد"
   },
-  "addRulePlaceholder": {
-    "message": "div:contains('إعلان')",
-    "description": "نص عنصر نائب لإدخال القاعدة"
-  },
   "addButton": {
     "message": "إضافة",
     "description": "نص زر إضافة القاعدة"

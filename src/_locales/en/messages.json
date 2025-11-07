@@ -19,10 +19,6 @@
     "message": "Blocking rules:",
     "description": "Label for rules list"
   },
-  "addRulePlaceholder": {
-    "message": "div:contains('advertisement')",
-    "description": "Placeholder text for rule input"
-  },
   "addButton": {
     "message": "Add",
     "description": "Add rule button text"

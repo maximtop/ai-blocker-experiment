@@ -277,10 +277,7 @@ export class Popup {
             settingsBtn.textContent = '⚙️';
         }
 
-        // Input placeholder and empty state
-        const placeholder = Translator.getMessage('addRulePlaceholder');
-        // TODO try to get rid of as HTMLInputElement
-        (document.getElementById('ruleInput') as HTMLInputElement)!.placeholder = placeholder;
+        // Empty state message
         const emptyMsg = Translator.getMessage('emptyRules');
         document.getElementById('emptyRules')!.textContent = emptyMsg;
     }

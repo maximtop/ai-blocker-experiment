@@ -19,10 +19,6 @@
     "message": "Regole di blocco:",
     "description": "Etichetta elenco regole"
   },
-  "addRulePlaceholder": {
-    "message": "div:contains('pubblicità')",
-    "description": "Testo segnaposto per l'input della regola"
-  },
   "addButton": {
     "message": "Aggiungi",
     "description": "Testo del pulsante aggiungi regola"

@@ -19,10 +19,6 @@
     "message": "Regras de bloqueio:",
     "description": "Rótulo da lista de regras"
   },
-  "addRulePlaceholder": {
-    "message": "div:contains('propaganda')",
-    "description": "Texto de espaço reservado para entrada de regra"
-  },
   "addButton": {
     "message": "Adicionar",
     "description": "Texto do botão adicionar regra"

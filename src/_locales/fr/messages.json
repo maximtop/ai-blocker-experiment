@@ -19,10 +19,6 @@
     "message": "Règles de blocage :",
     "description": "Étiquette de la liste des règles"
   },
-  "addRulePlaceholder": {
-    "message": "div:contains('publicité')",
-    "description": "Texte de placeholder pour l'entrée de règle"
-  },
   "addButton": {
     "message": "Ajouter",
     "description": "Texte du bouton ajouter une règle"
