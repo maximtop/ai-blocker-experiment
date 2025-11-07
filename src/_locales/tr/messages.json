@@ -4,7 +4,7 @@
     "description": "Uzantı adı"
   },
   "extensionDescription": {
-    "message": "LLM gömme ve kullanıcı tanımlı kurallar kullanarak reklamları engelleyin",
+    "message": "Yapay zeka destekli semantik kurallarla reklamları ve istenmeyen içeriği engelleyin",
     "description": "Uzantı açıklaması"
   },
   "ruleBasedBlocking": {

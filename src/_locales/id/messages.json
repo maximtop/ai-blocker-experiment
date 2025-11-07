@@ -4,7 +4,7 @@
     "description": "Nama ekstensi"
   },
   "extensionDescription": {
-    "message": "Blokir iklan menggunakan embedding LLM dan aturan yang ditentukan pengguna",
+    "message": "Blokir iklan dan konten yang tidak diinginkan dengan aturan semantik bertenaga AI",
     "description": "Deskripsi ekstensi"
   },
   "ruleBasedBlocking": {

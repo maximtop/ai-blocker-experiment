@@ -4,7 +4,7 @@
     "description": "Nome dell'estensione"
   },
   "extensionDescription": {
-    "message": "Blocca gli annunci utilizzando gli embedding LLM e regole definite dall'utente",
+    "message": "Blocca annunci e contenuti indesiderati con regole semantiche basate sull'IA",
     "description": "Descrizione dell'estensione"
   },
   "ruleBasedBlocking": {

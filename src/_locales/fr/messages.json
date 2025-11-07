@@ -4,7 +4,7 @@
     "description": "Nom de l'extension"
   },
   "extensionDescription": {
-    "message": "Bloquez les publicités en utilisant les embeddings LLM et des règles définies par l'utilisateur",
+    "message": "Bloquez les publicités et le contenu indésirable avec des règles sémantiques alimentées par l'IA",
     "description": "Description de l'extension"
   },
   "ruleBasedBlocking": {

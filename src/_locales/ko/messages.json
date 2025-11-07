@@ -4,7 +4,7 @@
     "description": "확장 프로그램 이름"
   },
   "extensionDescription": {
-    "message": "LLM 임베딩과 사용자 정의 규칙을 사용하여 광고 차단",
+    "message": "AI 기반 시맨틱 규칙으로 광고 및 원치 않는 콘텐츠 차단",
     "description": "확장 프로그램 설명"
   },
   "ruleBasedBlocking": {

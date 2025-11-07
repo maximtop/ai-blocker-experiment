@@ -4,7 +4,7 @@
     "description": "Name der Erweiterung"
   },
   "extensionDescription": {
-    "message": "Blockiere Werbung mithilfe von LLM-Einbettungen und benutzerdefinierten Regeln",
+    "message": "Blockiere Werbung und unerwünschte Inhalte mit KI-gestützten semantischen Regeln",
     "description": "Beschreibung der Erweiterung"
   },
   "ruleBasedBlocking": {

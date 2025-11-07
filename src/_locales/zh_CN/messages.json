@@ -4,7 +4,7 @@
     "description": "扩展名称"
   },
   "extensionDescription": {
-    "message": "使用LLM嵌入和用户定义规则拦截广告",
+    "message": "使用AI驱动的语义规则拦截广告和不需要的内容",
     "description": "扩展描述"
   },
   "ruleBasedBlocking": {

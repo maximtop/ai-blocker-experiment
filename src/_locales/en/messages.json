@@ -4,7 +4,7 @@
     "description": "Name of the extension"
   },
   "extensionDescription": {
-    "message": "Block advertisements using LLM embeddings and user-defined rules",
+    "message": "Block ads and unwanted content with AI-powered semantic rules",
     "description": "Description of the extension"
   },
   "ruleBasedBlocking": {
