@@ -54,11 +54,7 @@ If you encounter problems or have questions:
 3. Click "Load unpacked extension"
 4. Select the `dist/` folder from this project
 
-**Important:** By default, the extension is configured to work **only with local test pages** (`file:///*/index.html`, `file:///*/visual-test.html`, `file:///*/debug.html`). To use it on other websites, update the `matches` array in `manifest.json` (lines 25-29) before building. For example:
-```json
-"matches": ["<all_urls>"]
-```
-or specify specific domains:
+**Note:** The extension is configured to work on all websites (`<all_urls>` in manifest.json). You can restrict it to specific domains by updating the `matches` array in `manifest.json` before building if desired:
 ```json
 "matches": ["https://*.example.com/*", "https://anothersite.com/*"]
 ```
@@ -66,10 +62,14 @@ or specify specific domains:
 ## Usage
 
 1. **Rule Configuration**:
-   - Add rules using three formats:
+   - Add rules using three formats (optionally with domain restrictions):
      - `selector:contains-meaning-embedding('text')` - semantic similarity
      - `selector:contains-meaning-prompt('criteria')` - direct AI analysis
      - `selector:contains-meaning-vision('criteria')` - visual AI analysis
+   - Domain-specific rules (optional):
+     - `example.com#?#selector:contains-meaning-embedding('text')` - applies only to example.com
+     - `site1.com,site2.com#?#selector:contains-meaning-prompt('criteria')` - applies to multiple domains
+     - Supports wildcards: `*.example.com#?#rule`, paths: `test-page/index.html#?#rule`, and special identifiers: `file://`, `localhost`
    - Use the "×" button to remove rules
    - Use the "✏️" button to edit existing rules
    - Use the "Test" button to preview rule matches
@@ -91,12 +91,15 @@ The extension supports three AI-powered detection methods:
 **Syntax:**
 ```css
 selector:contains-meaning-embedding('text')
+[domain1,domain2#?#]selector:contains-meaning-embedding('text')
 ```
 
 **Examples:**
 - `div[class*="ad"]:contains-meaning-embedding('advertisement')`
 - `aside:contains-meaning-embedding('buy')`
 - `*[id*="promo"]:contains-meaning-embedding('promotional')`
+- `example.com#?#div:contains-meaning-embedding('advertisement')` - only on example.com
+- `*.news.com,blog.site#?#aside:contains-meaning-embedding('sponsored')` - multiple domains
 
 ### Prompt-Based Rules (`:contains-meaning-prompt`)
 1. **Element Discovery**: Scans page elements using CSS selectors
@@ -107,12 +110,15 @@ selector:contains-meaning-embedding('text')
 **Syntax:**
 ```css
 selector:contains-meaning-prompt('criteria')
+[domain1,domain2#?#]selector:contains-meaning-prompt('criteria')
 ```
 
 **Examples:**
 - `div:contains-meaning-prompt('promotional content trying to sell products')`
 - `article:contains-meaning-prompt('clickbait or sensational headlines')`
 - `section:contains-meaning-prompt('content asking for donations or subscriptions')`
+- `news.com#?#article:contains-meaning-prompt('clickbait or sensational headlines')` - only on news.com
+- `*.shopping.com#?#div:contains-meaning-prompt('promotional content')` - with wildcard
 
 ### Vision-Based Rules (`:contains-meaning-vision`)
 1. **Element Discovery**: Scans page elements using CSS selectors
@@ -124,12 +130,15 @@ selector:contains-meaning-prompt('criteria')
 **Syntax:**
 ```css
 selector:contains-meaning-vision('criteria')
+[domain1,domain2#?#]selector:contains-meaning-vision('criteria')
 ```
 
 **Examples:**
 - `div:contains-meaning-vision('advertisement banner or promotional image')`
 - `img:contains-meaning-vision('product advertisement or sponsored content')`
 - `section:contains-meaning-vision('visual promotional content')`
+- `shop.com#?#div:contains-meaning-vision('advertisement banner')` - only on shop.com
+- `site1.com,site2.com#?#img:contains-meaning-vision('sponsored content')` - multiple domains
 
 **Perfect for**: Image-based ads or visually deceptive content that can't be detected by text alone.
 
