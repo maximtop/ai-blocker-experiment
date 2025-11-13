@@ -42,9 +42,17 @@ export interface ElementRuleMatchResult {
 /**
  * Response types for message handlers
  */
+
+/**
+ * Response for GET_BLOCKING_STATUS action
+ */
 export interface GetBlockingStatusResponse {
+    /** Whether the request was successful */
     success: boolean;
+    /** Whether content blocking is enabled */
     blockingEnabled: boolean;
+    /** Whether debug logging is enabled for content scripts */
+    debugLogging: boolean;
 }
 
 export interface GetRulesResponse {
@@ -301,14 +309,35 @@ export class MessageHandler {
     private handleGetBlockingStatus(
         sendResponse: (response?: unknown) => void,
     ): boolean {
+        logger.info('🔵 GET_BLOCKING_STATUS: Request received');
         (async () => {
-            const blockingEnabled = await SettingsManager.get(
-                SETTINGS_KEYS.BLOCKING_ENABLED,
-            );
-            sendResponse({
-                success: true,
-                blockingEnabled,
-            });
+            try {
+                logger.info('🔵 GET_BLOCKING_STATUS: Fetching settings...');
+                const settings = await SettingsManager.get([
+                    SETTINGS_KEYS.BLOCKING_ENABLED,
+                    SETTINGS_KEYS.DEBUG_LOGGING,
+                ]);
+                logger.info(
+                    '🔵 GET_BLOCKING_STATUS: Settings retrieved - '
+                    + `blocking=${settings.blockingEnabled}, `
+                    + `debug=${settings.debugLogging}`,
+                );
+                const response = {
+                    success: true,
+                    blockingEnabled: settings.blockingEnabled,
+                    debugLogging: settings.debugLogging,
+                };
+                logger.info('🔵 GET_BLOCKING_STATUS: Sending response');
+                sendResponse(response);
+                logger.info('🔵 GET_BLOCKING_STATUS: Response sent successfully');
+            } catch (error) {
+                logger.error('🔵 GET_BLOCKING_STATUS: Error occurred', error);
+                sendResponse({
+                    success: false,
+                    blockingEnabled: false,
+                    debugLogging: false,
+                });
+            }
         })();
         return true; // Async response
     }

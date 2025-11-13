@@ -1,5 +1,5 @@
 import { ACTIONS, RULE_TYPE } from '../shared/constants';
-import { createLogger } from '../shared/logger';
+import { createLogger, setDebugLogging } from '../shared/logger';
 import { Messaging } from '../shared/messaging';
 import type { Rule, VisionRule } from '../shared/rule-types';
 import { AutoScreenshotObserver } from './auto-screenshot-observer';
@@ -54,10 +54,22 @@ class ContentManager {
      */
     async fetchAndInitialize(): Promise<void> {
         try {
+            logger.info('🔴 Content: Starting initialization...');
+
             // Check if blocking is enabled via background messaging
+            logger.info('🔴 Content: Requesting blocking status...');
             const statusResponse = await Messaging.sendMessage({
                 action: ACTIONS.GET_BLOCKING_STATUS,
             });
+
+            logger.info(
+                '🔴 Content: Blocking status received - '
+                + `blocking=${statusResponse.blockingEnabled}, `
+                + `debug=${statusResponse.debugLogging}`,
+            );
+
+            // Set debug logging state from background response
+            setDebugLogging(statusResponse.debugLogging);
 
             if (!statusResponse.blockingEnabled) {
                 logger.info('Blocking is disabled, skipping initialization');
@@ -65,7 +77,7 @@ class ContentManager {
             }
 
             // Fetch applicable rules (already filtered by background script)
-            logger.info('Fetching applicable rules from background...');
+            logger.info('🔴 Content: Fetching applicable rules from background...');
             const response = await Messaging.sendMessage({
                 action: ACTIONS.GET_RULES,
             });

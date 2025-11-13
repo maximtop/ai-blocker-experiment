@@ -231,8 +231,3 @@ describe('RuleService', () => {
         });
     });
 });
-
-
-
-
-

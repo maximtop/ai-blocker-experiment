@@ -1,5 +1,6 @@
 import * as v from 'valibot';
 import {
+    DEFAULT_DEBUG_LOGGING,
     DEFAULT_EMBEDDING_MODEL,
     DEFAULT_EMBEDDING_THRESHOLD,
     DEFAULT_PROMPT_MODEL,
@@ -31,6 +32,7 @@ export const settingsSchema = v.object({
 
     // Development options
     saveScreenshotsToDownloads: v.optional(v.boolean(), false),
+    debugLogging: v.optional(v.boolean(), DEFAULT_DEBUG_LOGGING),
 
     // Ad blocking rules
     adBlockRules: v.optional(v.array(v.object({
@@ -58,6 +60,7 @@ export const DEFAULT_SETTINGS: Settings = {
     visionThreshold: DEFAULT_VISION_THRESHOLD,
     blockingEnabled: true,
     saveScreenshotsToDownloads: false,
+    debugLogging: DEFAULT_DEBUG_LOGGING,
     adBlockRules: [],
 };
 

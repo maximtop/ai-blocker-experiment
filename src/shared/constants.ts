@@ -282,6 +282,7 @@ export const SETTINGS_KEYS = {
     VISION_THRESHOLD: 'visionThreshold',
     BLOCKING_ENABLED: 'blockingEnabled',
     SAVE_SCREENSHOTS_TO_DOWNLOADS: 'saveScreenshotsToDownloads',
+    DEBUG_LOGGING: 'debugLogging',
     AD_BLOCK_RULES: 'adBlockRules',
 } as const;
 
@@ -328,6 +329,9 @@ export const SCREENSHOT_CONFIG = {
 
 // Default value for saving screenshots to downloads
 export const DEFAULT_SAVE_SCREENSHOTS_TO_DOWNLOADS = false;
+
+// Default value for debug logging (disabled to reduce console noise)
+export const DEFAULT_DEBUG_LOGGING = false;
 
 // Embedding benchmark configuration
 export const EMBEDDING_BENCHMARK_CONFIG = {

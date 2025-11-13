@@ -31,6 +31,14 @@ export class BackgroundManager {
 
     messageHandler: MessageHandler;
 
+    private isInitialized = false;
+
+    private pendingMessages: Array<{
+        message: ActionMessage;
+        sender: chrome.runtime.MessageSender;
+        sendResponse: (response?: unknown) => void;
+    }> = [];
+
     constructor() {
         this.llmService = new LLMService();
         this.ruleService = new RuleService();
@@ -43,19 +51,98 @@ export class BackgroundManager {
     }
 
     /**
+     * Synchronous initialization - registers listeners immediately
+     * This must be called before any async operations to ensure
+     * messages are caught during service worker startup
+     */
+    syncInit(): void {
+        logger.info('🟢 Registering message listener synchronously...');
+        chrome.runtime.onMessage.addListener(
+            this.handleMessageWithQueue.bind(this),
+        );
+
+        logger.info('🟢 Registering port listener synchronously...');
+        chrome.runtime.onConnect.addListener(
+            this.handlePortWithQueue.bind(this),
+        );
+
+        logger.info('🟢 Message and port listeners registered');
+    }
+
+    /**
+     * Handle message with queueing support during initialization
+     * @param message Message from content script
+     * @param sender Message sender information
+     * @param sendResponse Function to send response back
+     * @returns True if response will be sent asynchronously
+     */
+    private handleMessageWithQueue(
+        message: ActionMessage,
+        sender: chrome.runtime.MessageSender,
+        sendResponse: (response?: unknown) => void,
+    ): boolean {
+        if (!this.isInitialized) {
+            logger.info('🟢 Message received during initialization, queueing...');
+            this.pendingMessages.push({ message, sender, sendResponse });
+            return true; // Keep channel open for async response
+        }
+        return this.handleMessage(message, sender, sendResponse);
+    }
+
+    /**
+     * Handle port connection with queueing support during initialization
+     * @param port Chrome runtime port connection
+     */
+    private handlePortWithQueue(port: chrome.runtime.Port): void {
+        if (!this.isInitialized) {
+            logger.info(
+                '🟢 Port connection received during initialization, '
+                + 'waiting for init...',
+            );
+            // For ports, we can just wait - they stay connected
+            const checkInit = setInterval(() => {
+                if (this.isInitialized) {
+                    clearInterval(checkInit);
+                    this.handlePortConnection(port);
+                }
+            }, 10);
+            return;
+        }
+        this.handlePortConnection(port);
+    }
+
+    /**
+     * Process any messages that were queued during initialization
+     */
+    private processQueuedMessages(): void {
+        if (this.pendingMessages.length > 0) {
+            logger.info(
+                `🟢 Processing ${this.pendingMessages.length} queued message(s)`,
+            );
+            this.pendingMessages.forEach(
+                ({ message, sender, sendResponse }) => {
+                    this.handleMessage(message, sender, sendResponse);
+                },
+            );
+            this.pendingMessages.length = 0; // Clear queue
+        }
+    }
+
+    /**
      * Initialize all services
+     * Note: Message and port listeners are registered synchronously
+     * in entry.ts before this async init runs
      */
     async init() {
+        logger.info('🟢 Background Manager: Starting initialization...');
+
+        logger.info('🟢 Background Manager: Initializing LLM service...');
         await this.llmService.init();
+        logger.info('🟢 Background Manager: LLM service initialized');
+
+        logger.info('🟢 Background Manager: Initializing rule service...');
         await this.ruleService.initialize();
-
-        // Set up message listener
-        chrome.runtime.onMessage.addListener(this.handleMessage.bind(this));
-
-        // Set up port listener for streaming analysis
-        chrome.runtime.onConnect.addListener(
-            this.handlePortConnection.bind(this),
-        );
+        logger.info('🟢 Background Manager: Rule service initialized');
 
         // Handle extension shutdown
         chrome.runtime.onSuspend.addListener(() => {
@@ -65,7 +152,12 @@ export class BackgroundManager {
             }
         });
 
-        logger.info('Services initialized successfully');
+        logger.info('🜢 Background Manager: All services initialized successfully');
+
+        // Mark as initialized and process queued messages
+        this.isInitialized = true;
+        this.processQueuedMessages();
+        logger.info('🜢 Background manager initialization complete');
     }
 
     /**
@@ -149,6 +241,10 @@ export class BackgroundManager {
         sender: chrome.runtime.MessageSender,
         sendResponse: (response?: unknown) => void,
     ): boolean {
+        logger.info(
+            `🟢 Background Manager: Received message action="${message.action}" `
+            + `from tab=${sender.tab?.id || 'unknown'}`,
+        );
         return this.messageHandler.handle(message, sender, sendResponse);
     }
 

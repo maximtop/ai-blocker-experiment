@@ -90,6 +90,8 @@ export class Options {
 
     private saveScreenshotsCheckbox!: HTMLInputElement;
 
+    private debugLoggingCheckbox!: HTMLInputElement;
+
     private saveBtn!: HTMLButtonElement;
 
     private clearBtn!: HTMLButtonElement;
@@ -114,6 +116,9 @@ export class Options {
             this.openrouterKeyInput = document.getElementById('openrouterKey') as HTMLInputElement;
             this.saveScreenshotsCheckbox = document.getElementById(
                 'saveScreenshotsCheckbox',
+            ) as HTMLInputElement;
+            this.debugLoggingCheckbox = document.getElementById(
+                'debugLoggingCheckbox',
             ) as HTMLInputElement;
             this.saveBtn = document.getElementById('saveBtn') as HTMLButtonElement;
             this.clearBtn = document.getElementById('clearBtn') as HTMLButtonElement;
@@ -393,6 +398,9 @@ export class Options {
             const shouldSave = settings.saveScreenshotsToDownloads;
             this.saveScreenshotsCheckbox.checked = shouldSave;
 
+            // Load debug logging setting
+            this.debugLoggingCheckbox.checked = settings.debugLogging;
+
             // Update model warnings after loading
             this.updateModelWarnings();
 
@@ -541,6 +549,7 @@ export class Options {
                 openrouterApiKey: openrouterKey,
                 saveScreenshotsToDownloads:
                     this.saveScreenshotsCheckbox.checked,
+                debugLogging: this.debugLoggingCheckbox.checked,
             };
 
             // Only include embedding model if selected
