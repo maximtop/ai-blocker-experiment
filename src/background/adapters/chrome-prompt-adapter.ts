@@ -336,7 +336,7 @@ export class ChromePromptAdapter extends BaseLLMAdapter {
                 responseConstraint: schema,
             });
 
-            logger.info(`Chrome Prompt response: ${response}`);
+            logger.debug(`Chrome Prompt response: ${response}`);
 
             // Parse JSON response
             const result = JSON.parse(response) as LLMAnalysisResult;
@@ -520,7 +520,7 @@ export class ChromePromptAdapter extends BaseLLMAdapter {
             // Clean up vision session
             visionSession.destroy();
 
-            logger.info(`Chrome Prompt vision response: ${response}`);
+            logger.debug(`Chrome Prompt vision response: ${response}`);
 
             // Parse JSON response
             const result = JSON.parse(response) as LLMAnalysisResult;

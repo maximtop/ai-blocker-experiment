@@ -322,7 +322,7 @@ export class OpenRouterAdapter extends BaseLLMAdapter {
             }
 
             const successMsg = `Chat API success: ${content}`;
-            logger.info(successMsg);
+            logger.debug(successMsg);
 
             // Parse JSON response (strip markdown code blocks if present)
             const { result, hadJsonError } = OpenRouterAdapter.parseLLMResponse(
@@ -449,7 +449,7 @@ export class OpenRouterAdapter extends BaseLLMAdapter {
 
             const successMsg = 'Vision API success: "'
         + `${content.substring(0, 100)}..."`;
-            logger.info(successMsg);
+            logger.debug(successMsg);
 
             // Parse JSON response (strip markdown code blocks if present)
             const { result, hadJsonError } = OpenRouterAdapter.parseLLMResponse(

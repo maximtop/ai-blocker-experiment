@@ -144,6 +144,14 @@ export class ContentAnalyzer {
      * Main analysis function
      */
     async analyzePageWithRules(): Promise<void> {
+        if (!document.body) {
+            logger.debug('document.body not available, waiting for DOMContentLoaded to start analysis');
+            window.addEventListener('DOMContentLoaded', () => {
+                this.analyzePageWithRules();
+            });
+            return;
+        }
+
         if (this.isAnalyzing) {
             logger.info('Analysis already in progress...');
             return;

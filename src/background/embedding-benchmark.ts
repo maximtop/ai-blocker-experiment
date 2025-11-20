@@ -33,6 +33,7 @@ export interface BenchmarkMeasurement {
     llmResult?: boolean;
     isCorrect?: boolean;
     hadJsonError?: boolean;
+    explanation?: string;
 }
 
 /**
@@ -179,6 +180,7 @@ export class EmbeddingBenchmark {
      * @param groundTruth Ground truth label for accuracy tracking
      * @param llmResult LLM decision result (matches=true/false)
      * @param hadJsonError Whether JSON parsing error occurred
+     * @param explanation LLM explanation for the decision
      */
     async recordMeasurement(
         modelId: string,
@@ -196,6 +198,7 @@ export class EmbeddingBenchmark {
         groundTruth?: 'ad' | 'not-ad',
         llmResult?: boolean,
         hadJsonError?: boolean,
+        explanation?: string,
     ): Promise<void> {
         if (!this.enabled) {
             return;
@@ -229,6 +232,7 @@ export class EmbeddingBenchmark {
             llmResult,
             isCorrect,
             hadJsonError,
+            explanation,
         };
 
         // Initialize model stats if needed

@@ -19,6 +19,14 @@ export class ContentObserver {
 
         ContentObserver.reanalyzeCallback = reanalyzeCallback;
 
+        if (!document.body) {
+            logger.debug('document.body not available, waiting for DOMContentLoaded');
+            window.addEventListener('DOMContentLoaded', () => {
+                ContentObserver.initialize(reanalyzeCallback);
+            });
+            return;
+        }
+
         ContentObserver.observer = new MutationObserver((mutations) => {
             let shouldReanalyze = false;
 

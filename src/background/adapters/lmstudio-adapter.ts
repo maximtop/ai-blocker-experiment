@@ -280,7 +280,7 @@ export class LMStudioAdapter extends BaseLLMAdapter {
         }
 
         const successMsg = `Chat API success: ${content}`;
-        logger.info(successMsg);
+        logger.debug(successMsg);
 
         // Strip thinking tags if present (some models output reasoning before JSON)
         // Example: <think>reasoning...</think>{"matches":true,...}

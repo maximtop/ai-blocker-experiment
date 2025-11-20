@@ -217,7 +217,7 @@ export class OpenAIAdapter extends BaseLLMAdapter {
             }
 
             const successMsg = `Chat API success: ${content}`;
-            logger.info(successMsg);
+            logger.debug(successMsg);
 
             // Parse JSON response
             const result = JSON.parse(content) as LLMAnalysisResult;
@@ -317,7 +317,7 @@ export class OpenAIAdapter extends BaseLLMAdapter {
 
             const successMsg = 'Vision API success: "'
                 + `${content.substring(0, 100)}..."`;
-            logger.info(successMsg);
+            logger.debug(successMsg);
 
             // Parse JSON response
             const result = JSON.parse(content) as LLMAnalysisResult;

@@ -67,6 +67,14 @@ export class DOMObserver {
      * Set up MutationObserver to watch for DOM changes
      */
     setupMutationObserver(): void {
+        if (!document.body) {
+            logger.debug('document.body not available, waiting for DOMContentLoaded');
+            window.addEventListener('DOMContentLoaded', () => {
+                this.setupMutationObserver();
+            });
+            return;
+        }
+
         this.mutationObserver = new MutationObserver((mutations) => {
             // Broadcast mutations to all subscribers
             for (const callback of this.subscribers) {

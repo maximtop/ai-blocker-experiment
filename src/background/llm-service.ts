@@ -555,7 +555,17 @@ export class LLMService {
             const cached = this.cacheManager.get(cacheKey);
             if (cached && typeof cached === 'object') {
                 logger.debug('Cache hit for embedding similarity check');
-                return cached as AnalysisResult;
+                const result = cached as AnalysisResult;
+
+                // Backfill explanation if missing from legacy cache
+                if (!result.explanation && result.confidence !== undefined) {
+                    const confPct = (result.confidence * 100).toFixed(1);
+                    const thrPct = (this.embeddingThreshold * 100).toFixed(1);
+                    // Note: using current threshold for display
+                    result.explanation = `Cosine similarity ${confPct}%`
+                        + ` (threshold: ${thrPct}%)`;
+                }
+                return result;
             }
         } else {
             logger.debug('📊 Benchmark mode: skipping cache');
@@ -578,6 +588,10 @@ export class LLMService {
             );
 
             const matches = confidence >= this.embeddingThreshold;
+            const confPct = (confidence * 100).toFixed(1);
+            const thrPct = (this.embeddingThreshold * 100).toFixed(1);
+            const explanation = `Cosine similarity ${confPct}%`
+                + ` (threshold: ${thrPct}%)`;
 
             // Record benchmark measurement for embedding analysis
             if (benchmarkEnabled) {
@@ -594,6 +608,7 @@ export class LLMService {
                     groundTruth,
                     matches,
                     false,
+                    explanation,
                 );
             }
 
@@ -604,7 +619,7 @@ export class LLMService {
             const result: AnalysisResult = {
                 matches,
                 confidence,
-                explanation: '',
+                explanation,
                 provider: embeddingProvider,
                 cached: false,
             };
@@ -649,7 +664,7 @@ export class LLMService {
             // Check cache first
             const cachedResult = this.cacheManager.get(cacheKey);
             if (cachedResult && !Array.isArray(cachedResult)) {
-                logger.debug('Prompt cache hit');
+                // Silently return cached result - logging handled by BackgroundManager
                 return { ...cachedResult, cached: true };
             }
         } else {
@@ -709,13 +724,8 @@ export class LLMService {
                 this.cacheManager.set(cacheKey, response);
             }
 
-            const logMsg = '🔍 [LLMService.analyzeByPrompt] Result:\n'
-                + `   - API matches: ${result.matches}\n`
-                + `   - API confidence: ${result.confidence}\n`
-                + `   - Threshold: ${threshold}\n`
-                + `   - Final decision: ${matches} `
-                + `(${result.matches} && ${result.confidence} >= ${threshold})`;
-            logger.info(logMsg);
+            // All result logging is now handled by BackgroundManager
+            // in a collapsed group format for cleaner console output
 
             return response;
         } catch (error) {
@@ -850,7 +860,7 @@ export class LLMService {
                 + `   - API Matches: ${result.matches}\n`
                 + `   - API Confidence: ${confPct}%\n`
                 + `   - Explanation: ${result.explanation}`;
-            logger.info(responseMsg);
+            logger.debug(responseMsg);
 
             // Combine API's matches decision with confidence threshold
             // Both must be true: API says it matches
@@ -862,7 +872,7 @@ export class LLMService {
             const decision = matches ? '❌ MATCHES' : '✅ DOES NOT MATCH';
             const thresholdMsg = `🧠 Applying threshold check (${thrPct}%):\n`
                 + `   - Final decision: ${decision}`;
-            logger.info(thresholdMsg);
+            logger.debug(thresholdMsg);
 
             const response: AnalysisResult = {
                 matches,

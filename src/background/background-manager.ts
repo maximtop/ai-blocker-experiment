@@ -215,7 +215,7 @@ export class BackgroundManager {
                         const msg = `Element "${text}..."`
                             + ` matches rule "${rule.ruleString}"`
                             + ` (confidence: ${confidence})`;
-                        logger.info(msg);
+                        logger.debug(msg);
                     }
                 } catch (error) {
                     const msg = 'Error analyzing element'
@@ -257,11 +257,17 @@ export class BackgroundManager {
     async analyzeElementWithRule(
         element: AnalyzableElement,
         rule: Rule,
-    ): Promise<{ matches: boolean; confidence: number; threshold?: number }> {
+    ): Promise<{
+            matches: boolean;
+            confidence: number;
+            threshold?: number;
+            explanation?: string;
+        }> {
         try {
             let matches = false;
             let confidence = 0;
             let threshold;
+            let explanation = '';
 
             // Check against rule criteria
             if (rule.type === RULE_TYPE.EMBEDDING) {
@@ -275,6 +281,7 @@ export class BackgroundManager {
                 );
                 matches = checkResult.matches;
                 confidence = checkResult.confidence;
+                explanation = checkResult.explanation || '';
             } else if (rule.type === RULE_TYPE.PROMPT) {
                 // Use prompt threshold from LLM service
                 threshold = this.llmService.promptThreshold;
@@ -286,9 +293,12 @@ export class BackgroundManager {
                 );
                 matches = result.matches;
                 confidence = result.confidence;
+                explanation = result.explanation || '';
             }
 
-            return { matches, confidence, threshold };
+            return {
+                matches, confidence, threshold, explanation,
+            };
         } catch (error) {
             const msg = 'Error analyzing element'
                 + ` ${element.id} with rule ${rule.ruleString}:`;
@@ -510,7 +520,21 @@ export class BackgroundManager {
             BackgroundManager.sendElementResult(port, element.id, result);
 
             const status = result.matched ? 'blocked' : 'allowed';
-            logger.info(`Sent result for element ${element.id}: ${status}`);
+            const confPercent = (result.maxConfidence * 100).toFixed(1);
+            const explanation = result.explanation
+                ? `\nReason: ${result.explanation}`
+                : '';
+
+            const resultGroup = `Sent result for element ${element.id}: `
+                + `${status}`;
+            const resultDetails = `Confidence: ${confPercent}%${explanation}\n`
+                + `Full Text: "${element.text.replace(/\s+/g, ' ').trim()}"`;
+
+            /* eslint-disable no-console */
+            console.groupCollapsed(resultGroup);
+            console.log(resultDetails);
+            console.groupEnd();
+            /* eslint-enable no-console */
         } catch (error) {
             logger.error(`Error analyzing element ${element.id}:`, error);
             // Only try to send error result if port is still connected
@@ -539,11 +563,13 @@ export class BackgroundManager {
             matchedRule: Rule | null;
             maxConfidence: number;
             threshold: number;
+            explanation?: string;
         }> {
         let matched = false;
         let matchedRule = null;
         let maxConfidence = 0;
         let threshold = 0;
+        let bestExplanation = '';
 
         // Filter rules to only those whose selector matches this element
         const applicableRules = enabledRules.filter(
@@ -563,11 +589,17 @@ export class BackgroundManager {
         for (const rule of applicableRules) {
             const result = await this.analyzeElementWithRule(element, rule);
 
-            if (result.matches && result.confidence > maxConfidence) {
-                matched = true;
-                matchedRule = rule;
+            // Track highest confidence result regardless of match
+            if (result.confidence > maxConfidence) {
                 maxConfidence = result.confidence;
                 threshold = result.threshold ?? 0;
+                bestExplanation = result.explanation || '';
+
+                // Only set as matched if it actually matches
+                if (result.matches) {
+                    matched = true;
+                    matchedRule = rule;
+                }
             }
         }
 
@@ -576,6 +608,7 @@ export class BackgroundManager {
             matchedRule,
             maxConfidence,
             threshold,
+            explanation: bestExplanation,
         };
     }
 
