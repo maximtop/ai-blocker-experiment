@@ -65,8 +65,8 @@ export const DEFAULT_LMSTUDIO_EMBEDDING_MODEL = QWEN3_EMBEDDING_MODEL;
 export const DEFAULT_LMSTUDIO_CHAT_MODEL = '';
 // Defaults (using unique provider:model IDs via getModelId helper)
 export const DEFAULT_EMBEDDING_MODEL = getModelId(
-    QWEN3_EMBEDDING_MODEL,
-    LLM_PROVIDERS.LMSTUDIO,
+    OPENAI_TEXT_EMBEDDING_3_LARGE,
+    LLM_PROVIDERS.OPENAI,
 );
 export const DEFAULT_PROMPT_MODEL = getModelId(
     GPT_5_NANO,
