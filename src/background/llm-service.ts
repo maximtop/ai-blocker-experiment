@@ -735,29 +735,7 @@ export class LLMService {
     }
 
     /**
-     * Generate stable cache key from cache info, criteria, and vision model
-     * @param visionModel Vision model identifier
-     * @param cacheInfo Cache information from content script
-     * @param criteria Vision criteria
-     * @returns Stable cache key
-     */
-    private static generateImageCacheKey(
-        visionModel: string,
-        cacheInfo: CacheInfo,
-        criteria: string,
-    ): string {
-        const innerText = cacheInfo.innerText || '';
-
-        // TODO: Handle cases when multiple elements have the same innerText
-        // For now, we assume all elements for visual analysis have
-        // different innerText
-        const cacheKey = `${CACHE_KEY_TYPES.IMAGE}:`
-            + `${visionModel}:${innerText}:${criteria}`;
-        return cacheKey;
-    }
-
-    /**
-     * Analyze image using vision model with caching
+     * Analyze image using vision model (never cached)
      * @param imageData Base64-encoded image data
      * @param criteria Criteria to check against
      * @param cacheInfo Cache information with innerText
@@ -777,38 +755,29 @@ export class LLMService {
         const { provider } = getModelInfo(this.visionModel);
         const adapter = this.getOrCreateProvider(provider);
 
-        // Generate stable cache key from innerText, criteria, and vision model
-        const cacheKey = LLMService.generateImageCacheKey(
-            this.visionModel,
-            cacheInfo,
-            criteria,
-        );
+        // Extract text for logging purposes
         const innerText = cacheInfo.innerText || '';
         // Log only first 50 chars for readability
         const cacheId = innerText.substring(0, 50)
             + (innerText.length > 50 ? '...' : '');
 
-        // Check if benchmarking is enabled (bypasses cache)
+        // Check if benchmarking is enabled (for recording measurements)
         const benchmarkEnabled = this.benchmark.isEnabled();
 
-        // Check cache first (skip if benchmarking)
-        if (!benchmarkEnabled) {
-            const cachedResult = this.cacheManager.get(cacheKey);
-            if (cachedResult && !Array.isArray(cachedResult)) {
-                const cachedConfPct = (cachedResult.confidence * 100)
-                    .toFixed(1);
-                const cacheHitMsg = '📦 Cache HIT for element text: '
-                    + `"${cacheId}"\n`
-                    + `   - Cached matches: ${cachedResult.matches}\n`
-                    + `   - Cached confidence: ${cachedConfPct}%\n`
-                    + `   - Cached explanation: ${cachedResult.explanation}`;
-                logger.info(cacheHitMsg);
-                return { ...cachedResult, cached: true };
-            }
-        }
-        const missMsg = `📦 Cache MISS for element text: "${cacheId}" `
-            + '- Calling vision API';
-        logger.info(missMsg);
+        // IMPORTANT: Vision analysis is NEVER cached because:
+        // 1. Same text can have different images (ads rotate, images change)
+        // 2. Screenshots capture current visual state which is dynamic
+        // 3. We need to analyze what's ACTUALLY visible, not cached results
+        // 4. Vision is specifically for real-time visual content analysis
+        //
+        // Cache key would be based on text alone, which is insufficient for
+        // image analysis. To cache properly, we'd need to hash the image data
+        // itself, but that defeats the purpose since we're analyzing visual
+        // content that changes.
+        logger.info(
+            `📦 Vision analysis for "${cacheId}" - `
+            + 'Cache bypassed (images are dynamic), calling vision API',
+        );
 
         try {
             const imgSizeKb = (imageData.length / 1024).toFixed(2);
@@ -855,42 +824,21 @@ export class LLMService {
                 );
             }
 
-            const confPct = (result.confidence * 100).toFixed(1);
-            const responseMsg = '🧠 Vision API raw response received:\n'
-                + `   - API Matches: ${result.matches}\n`
-                + `   - API Confidence: ${confPct}%\n`
-                + `   - Explanation: ${result.explanation}`;
-            logger.debug(responseMsg);
-
             // Combine API's matches decision with confidence threshold
             // Both must be true: API says it matches
             // AND confidence is high enough
             const threshold = this.visionThreshold;
             const matches = result.matches && result.confidence >= threshold;
 
-            const thrPct = (threshold * 100).toFixed(1);
-            const decision = matches ? '❌ MATCHES' : '✅ DOES NOT MATCH';
-            const thresholdMsg = `🧠 Applying threshold check (${thrPct}%):\n`
-                + `   - Final decision: ${decision}`;
-            logger.debug(thresholdMsg);
-
-            const response: AnalysisResult = {
+            // Vision results are NOT cached
+            // (full details shown in MessageHandler console group)
+            return {
                 matches,
                 confidence: result.confidence,
                 explanation: result.explanation,
                 provider,
                 cached: false,
             };
-
-            // Cache the result (unless benchmarking)
-            if (!benchmarkEnabled) {
-                this.cacheManager.set(cacheKey, response);
-                logger.info(
-                    `🧠 Result cached for element: ${cacheId}`,
-                );
-            }
-
-            return response;
         } catch (error) {
             logger.error('Image analysis error:', error);
             throw error;

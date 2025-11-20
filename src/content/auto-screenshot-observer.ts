@@ -119,7 +119,25 @@ export class AutoScreenshotObserver {
         this.setupScrollTracking();
         this.setupIntersectionObserver();
         this.subscribeToDOM();
+
+        // Check for existing elements now
         this.observeExistingElements();
+
+        // Re-check after DOM is fully loaded (elements might be added dynamically)
+        if (document.readyState === 'loading') {
+            logger.info('📸 Document still loading, will re-check after DOMContentLoaded');
+            document.addEventListener('DOMContentLoaded', () => {
+                logger.info('📸 DOMContentLoaded fired, re-checking for existing elements');
+                this.observeExistingElements();
+            });
+        } else {
+            logger.info('📸 Document already loaded, scheduling re-check');
+            // Document already loaded, schedule a re-check for dynamically added content
+            setTimeout(() => {
+                logger.info('📸 Re-checking for existing elements after timeout');
+                this.observeExistingElements();
+            }, 100);
+        }
     }
 
     /**
@@ -160,22 +178,68 @@ export class AutoScreenshotObserver {
      * @param mutations Array of mutation records
      */
     handleMutations(mutations: MutationRecord[]): void {
+        if (!this.combinedSelector) {
+            return;
+        }
+
+        let checkedCount = 0;
+        let matchedCount = 0;
+        let childrenFound = 0;
+
         for (const mutation of mutations) {
             for (const node of Array.from(mutation.addedNodes)) {
                 if (node.nodeType !== Node.ELEMENT_NODE) continue;
 
-                this.checkAndObserveElement(node as Element);
+                const element = node as Element;
+                checkedCount += 1;
 
-                // Also check children
-                if (this.combinedSelector) {
-                    const targetElements = (node as Element).querySelectorAll(
-                        this.combinedSelector,
-                    );
-                    for (const element of Array.from(targetElements)) {
+                // Check the element itself
+                try {
+                    if (element.matches(this.combinedSelector)) {
+                        matchedCount += 1;
+                        logger.info(
+                            '📸 Found matching element: '
+                            + `${element.tagName}.`
+                            + `${(element as HTMLElement).className}`,
+                        );
                         this.checkAndObserveElement(element);
                     }
+                } catch (error) {
+                    // Ignore elements that can't be matched
+                    logger.debug(`📸 Could not match element: ${error}`);
+                }
+
+                // Also check children (critical for large container additions)
+                try {
+                    const targetElements = element.querySelectorAll(
+                        this.combinedSelector,
+                    );
+                    if (targetElements.length > 0) {
+                        childrenFound += targetElements.length;
+                        logger.info(
+                            `📸 Found ${targetElements.length} `
+                            + 'matching child elements in '
+                            + `${element.tagName}.`
+                            + `${(element as HTMLElement).className || '(no class)'}`,
+                        );
+                        for (const childElement of Array.from(targetElements)) {
+                            matchedCount += 1;
+                            this.checkAndObserveElement(childElement);
+                        }
+                    }
+                } catch (error) {
+                    logger.debug(`📸 Could not query children: ${error}`);
                 }
             }
+        }
+
+        if (checkedCount > 0) {
+            logger.debug(
+                `📸 Mutation: ${checkedCount} elements, `
+                + `${matchedCount} matched `
+                + `(${childrenFound} via children), `
+                + `selector: "${this.combinedSelector}"`,
+            );
         }
     }
 
@@ -185,6 +249,11 @@ export class AutoScreenshotObserver {
      */
     checkAndObserveElement(element: Element): void {
         if (!this.combinedSelector || !this.intersectionObserver) {
+            logger.warn(
+                '📸 Cannot check element: '
+                + `selector=${!!this.combinedSelector}, `
+                + `observer=${!!this.intersectionObserver}`,
+            );
             return;
         }
 
@@ -201,10 +270,21 @@ export class AutoScreenshotObserver {
                     this.intersectionObserver.observe(element);
                     this.registeredElements.add(element);
                     logger.info(
-                        'Started observing element with criteria: '
-                        + `${matchedRule.criteria}`,
+                        '📸 Started observing element '
+                        + `${element.tagName}.${element.className} `
+                        + `with criteria: ${matchedRule.criteria}`,
+                    );
+                } else {
+                    logger.warn(
+                        '📸 Element matched selector but no rule found: '
+                        + `${element.tagName}.${element.className}`,
                     );
                 }
+            } else {
+                logger.debug(
+                    '📸 Element already registered: '
+                    + `${element.tagName}.${element.className}`,
+                );
             }
         }
     }
@@ -219,7 +299,32 @@ export class AutoScreenshotObserver {
         }
 
         const elements = document.querySelectorAll(this.combinedSelector);
-        logger.info(`Found ${elements.length} existing target elements`);
+        logger.info(
+            `📸 Found ${elements.length} existing target elements `
+            + `matching "${this.combinedSelector}"`,
+        );
+
+        if (elements.length === 0) {
+            // Try to find similar elements to help debug
+            const parts = this.combinedSelector.split('.');
+            if (parts.length > 1) {
+                const firstClass = parts[1];
+                const similarElements = document.querySelectorAll(
+                    `.${firstClass}`,
+                );
+                logger.info(
+                    `📸 Debug: Found ${similarElements.length} elements `
+                    + `with class ".${firstClass}"`,
+                );
+                if (similarElements.length > 0 && similarElements.length < 10) {
+                    Array.from(similarElements).forEach((el) => {
+                        const elClass = (el as HTMLElement).className;
+                        logger.info(`📸   - ${el.tagName}.${elClass}`);
+                    });
+                }
+            }
+        }
+
         Array.from(elements).forEach((element) => {
             this.checkAndObserveElement(element);
         });
@@ -252,9 +357,20 @@ export class AutoScreenshotObserver {
         this.intersectionObserver = new IntersectionObserver(
             (entries) => {
                 entries.forEach((entry) => {
+                    const element = entry.target;
                     const isFullyVisible = entry.isIntersecting
                         && entry.intersectionRatio
                             >= AUTO_SCREENSHOT_CONFIG.VISIBILITY_THRESHOLD;
+
+                    const elClass = (element as HTMLElement).className;
+                    logger.debug(
+                        '📸 IntersectionObserver callback: '
+                        + `${element.tagName}.${elClass} - `
+                        + `intersecting=${entry.isIntersecting}, `
+                        + `ratio=${entry.intersectionRatio.toFixed(2)}, `
+                        + `fullyVisible=${isFullyVisible}`,
+                    );
+
                     if (isFullyVisible) {
                         this.handleElementFullyVisible(entry.target);
                     }
@@ -264,6 +380,7 @@ export class AutoScreenshotObserver {
                 threshold: AUTO_SCREENSHOT_CONFIG.VISIBILITY_THRESHOLD,
             },
         );
+        logger.info('📸 IntersectionObserver created and ready');
     }
 
     /**

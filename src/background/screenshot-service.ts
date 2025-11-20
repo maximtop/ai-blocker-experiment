@@ -241,6 +241,11 @@ export class ScreenshotService {
 
     /**
      * Capture and save screenshot of the active tab
+     *
+     * IMPORTANT: This method ALWAYS returns the dataUrl regardless of the
+     * SAVE_SCREENSHOTS_TO_DOWNLOADS setting. The dataUrl is required for
+     * vision analysis, which should work independently of whether screenshots
+     * are saved to disk.
      * @param tabId Tab ID to capture
      * @param bounds Optional bounds for cropping
      * @param criteria Optional vision criteria for analysis
@@ -254,7 +259,12 @@ export class ScreenshotService {
         onCaptured?: (filename: string) => void,
     ): Promise<CaptureResult> {
         try {
+            logger.info(`📸 Starting screenshot capture for tab ${tabId}`);
             let dataUrl = await ScreenshotService.captureTab(tabId);
+            logger.info(
+                '📸 Screenshot captured successfully, '
+                + `dataUrl length: ${dataUrl.length}`,
+            );
 
             // Generate filename and notify IMMEDIATELY after capture
             // Cropping doesn't need the page visible, so blur can happen now
@@ -270,6 +280,10 @@ export class ScreenshotService {
             if (bounds) {
                 logger.info('Cropping screenshot to bounds');
                 dataUrl = await ScreenshotService.cropImage(dataUrl, bounds);
+                logger.info(
+                    '📸 Screenshot cropped, '
+                    + `new dataUrl length: ${dataUrl.length}`,
+                );
             }
 
             let downloadId = null;
@@ -280,7 +294,7 @@ export class ScreenshotService {
             );
 
             logger.info(
-                `Screenshot download setting: ${shouldSave} `
+                `📸 Screenshot download setting: ${shouldSave} `
                 + `(key: ${SETTINGS_KEYS.SAVE_SCREENSHOTS_TO_DOWNLOADS})`,
             );
 
@@ -289,12 +303,20 @@ export class ScreenshotService {
                     dataUrl,
                     filename,
                 );
-                logger.info(`Screenshot saved to downloads with ID: ${downloadId}`);
+                logger.info(`📸 Screenshot saved to downloads with ID: ${downloadId}`);
             } else {
-                const msg = 'Screenshot captured but not saved '
-                    + '(disabled in settings)';
+                const msg = '📸 Screenshot captured but not saved '
+                    + '(disabled in settings) - dataUrl will still be used '
+                    + 'for vision analysis';
                 logger.info(msg);
             }
+
+            logger.info(
+                '📸 Returning result: success=true, '
+                + `filename=${filename}, `
+                + `dataUrlLength=${dataUrl.length}, `
+                + `criteria=${criteria}`,
+            );
 
             return {
                 success: true,
@@ -304,7 +326,7 @@ export class ScreenshotService {
                 criteria,
             };
         } catch (error) {
-            logger.error('Failed to capture and save screenshot:', error);
+            logger.error('❌ Failed to capture and save screenshot:', error);
             return {
                 success: false,
                 downloadId: null,

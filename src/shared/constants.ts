@@ -327,6 +327,7 @@ export const SCREENSHOT_CONFIG = {
     FILENAME_PREFIX: 'screenshot',
 } as const;
 
+// FIXME not used anywhere, but should be used
 // Default value for saving screenshots to downloads
 export const DEFAULT_SAVE_SCREENSHOTS_TO_DOWNLOADS = false;
 

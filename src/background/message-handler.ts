@@ -769,35 +769,25 @@ export class MessageHandler {
                                 criteria,
                                 cacheInfo,
                             );
-                        const completeMsg = `📸 [${result.filename}] `
-                            + 'Vision analysis complete - Full result:';
-                        logger.info(completeMsg);
-                        logger.info(
-                            `📸 [${result.filename}] - Matches: `
-                            + `${parsed.matches}`,
-                        );
                         const confPct = (parsed.confidence * 100)
                             .toFixed(1);
-                        const confMsg = `📸 [${result.filename}] `
-                            + `- Confidence: ${confPct}%`;
-                        logger.info(confMsg);
                         const thrPct = (this.llm.visionThreshold
                             * 100).toFixed(1);
-                        const thrMsg = `📸 [${result.filename}] `
-                            + `- Threshold: ${thrPct}%`;
-                        logger.info(thrMsg);
-                        logger.info(
-                            `📸 [${result.filename}] - Explanation: `
-                            + `${parsed.explanation}`,
-                        );
-                        logger.info(
-                            `📸 [${result.filename}] - Provider: `
-                            + `${parsed.provider}`,
-                        );
-                        logger.info(
-                            `📸 [${result.filename}] - Cached: `
-                            + `${parsed.cached}`,
-                        );
+
+                        const status = parsed.matches ? 'blocked' : 'allowed';
+                        const resultGroup = `📸 [${result.filename}] `
+                            + `Vision result: ${status}`;
+                        const resultDetails = `Confidence: ${confPct}%\n`
+                            + `Threshold: ${thrPct}%\n`
+                            + `Explanation: ${parsed.explanation}\n`
+                            + `Provider: ${parsed.provider}\n`
+                            + `Cached: ${parsed.cached}`;
+
+                        /* eslint-disable no-console */
+                        console.groupCollapsed(resultGroup);
+                        console.log(resultDetails);
+                        console.groupEnd();
+                        /* eslint-enable no-console */
 
                         // Add analysis to result with threshold
                         result.visionAnalysis = {
@@ -858,9 +848,25 @@ export class MessageHandler {
             );
 
             // Perform vision analysis if criteria provided
+            logger.info(
+                `📸 [${result.filename || 'unknown'}] Vision check: `
+                + `success=${result.success}, `
+                + `criteria=${!!result.criteria}, `
+                + `dataUrl=${!!result.dataUrl}, `
+                + `dataUrlLength=${result.dataUrl?.length || 0}`,
+            );
+
             const hasVisionData = result.success
                 && result.criteria
                 && result.dataUrl;
+
+            if (!hasVisionData) {
+                logger.warn(
+                    `📸 [${result.filename || 'unknown'}] `
+                    + 'Skipping vision analysis - missing required data',
+                );
+            }
+
             if (hasVisionData) {
                 try {
                     const cacheInfo = (message.cacheInfo as Record<
@@ -894,35 +900,25 @@ export class MessageHandler {
                             criteria,
                             cacheInfo,
                         );
-                    const completeMsg = `📸 [${result.filename}] `
-                        + 'Vision analysis complete - Full result:';
-                    logger.info(completeMsg);
-                    logger.info(
-                        `📸 [${result.filename}] - Matches: `
-                        + `${parsed.matches}`,
-                    );
                     const confPct = (parsed.confidence * 100)
                         .toFixed(1);
-                    const confMsg = `📸 [${result.filename}] `
-                        + `- Confidence: ${confPct}%`;
-                    logger.info(confMsg);
                     const thrPct = (this.llm.visionThreshold
                         * 100).toFixed(1);
-                    const thrMsg = `📸 [${result.filename}] `
-                        + `- Threshold: ${thrPct}%`;
-                    logger.info(thrMsg);
-                    logger.info(
-                        `📸 [${result.filename}] - Explanation: `
-                        + `${parsed.explanation}`,
-                    );
-                    logger.info(
-                        `📸 [${result.filename}] - Provider: `
-                        + `${parsed.provider}`,
-                    );
-                    logger.info(
-                        `📸 [${result.filename}] - Cached: `
-                        + `${parsed.cached}`,
-                    );
+
+                    const status = parsed.matches ? 'blocked' : 'allowed';
+                    const resultGroup = `📸 [${result.filename}] `
+                        + `Vision result: ${status}`;
+                    const resultDetails = `Confidence: ${confPct}%\n`
+                        + `Threshold: ${thrPct}%\n`
+                        + `Explanation: ${parsed.explanation}\n`
+                        + `Provider: ${parsed.provider}\n`
+                        + `Cached: ${parsed.cached}`;
+
+                    /* eslint-disable no-console */
+                    console.groupCollapsed(resultGroup);
+                    console.log(resultDetails);
+                    console.groupEnd();
+                    /* eslint-enable no-console */
 
                     // Add analysis to result with threshold
                     result.visionAnalysis = {

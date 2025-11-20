@@ -373,9 +373,7 @@ export class OpenRouterAdapter extends BaseLLMAdapter {
         const userPrompt = createImageAnalysisUserPrompt(criteria);
 
         try {
-            const debugMsg = 'Vision API call: "'
-        + `${userPrompt.substring(0, 100)}..."`;
-            logger.debug(debugMsg);
+            logger.debug(`Calling vision API with criteria: "${criteria}"`);
 
             const response = await fetch(OPENROUTER_CHAT_URL, {
                 method: 'POST',
@@ -447,9 +445,7 @@ export class OpenRouterAdapter extends BaseLLMAdapter {
                 };
             }
 
-            const successMsg = 'Vision API success: "'
-        + `${content.substring(0, 100)}..."`;
-            logger.debug(successMsg);
+            logger.debug('Vision API call completed successfully');
 
             // Parse JSON response (strip markdown code blocks if present)
             const { result, hadJsonError } = OpenRouterAdapter.parseLLMResponse(
