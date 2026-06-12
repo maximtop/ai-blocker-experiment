@@ -25,10 +25,16 @@ const logger = createLogger('MessageHandler');
 
 const DATA_URL_BASE64_INDEX = 1;
 const DATA_URL_SEPARATOR = ',';
+const IMAGE_BASE64_CHUNK_SIZE = 8192;
 const IMAGE_BYTES_PER_KILOBYTE = 1024;
+const IMAGE_CONTENT_TYPE_PREFIX = 'image/';
 const IMAGE_CONTENT_TYPE_HEADER = 'content-type';
 const IMAGE_FETCH_DEFAULT_CONTENT_TYPE = 'application/octet-stream';
 const IMAGE_FETCH_FAILED_PREFIX = 'Image fetch failed';
+const IMAGE_FETCH_UNSUPPORTED_CONTENT_TYPE_PREFIX = 'Unsupported image type';
+const IMAGE_FETCH_UNSUPPORTED_PROTOCOL_PREFIX = 'Unsupported image URL protocol';
+const IMAGE_LOCAL_FILE_PROTOCOL = 'file:';
+const IMAGE_URL_PROTOCOLS = new Set(['http:', 'https:']);
 const PERCENT_MULTIPLIER = 100;
 const UNKNOWN_CACHE_VALUE = 'unknown';
 
@@ -212,6 +218,7 @@ export type MessageMap = {
     [ACTIONS.FETCH_IMAGE_AS_DATA_URL]: {
         message: {
             action: typeof ACTIONS.FETCH_IMAGE_AS_DATA_URL;
+            pageUrl?: string;
             url: string;
         };
         response: ImageDataUrlResponse;
@@ -386,12 +393,21 @@ export class MessageHandler {
     /**
      * Fetch an image resource and convert it to a data URL.
      * @param url Image URL to fetch
+     * @param pageUrl URL of page that requested the fetch
      * @returns Data URL response
      */
     static async fetchImageAsDataUrl(
         url: string,
+        pageUrl?: string,
     ): Promise<ImageDataUrlResponse> {
         try {
+            if (!MessageHandler.isAllowedImageFetchUrl(url, pageUrl)) {
+                return {
+                    error: IMAGE_FETCH_UNSUPPORTED_PROTOCOL_PREFIX,
+                    success: false,
+                };
+            }
+
             const response = await fetch(url);
             if (!response.ok) {
                 return {
@@ -400,18 +416,32 @@ export class MessageHandler {
                 };
             }
 
-            const contentType = response.headers.get(IMAGE_CONTENT_TYPE_HEADER)
+            const responseContentType = response.headers.get(
+                IMAGE_CONTENT_TYPE_HEADER,
+            );
+            if (
+                responseContentType
+                && !MessageHandler.isImageContentType(responseContentType)
+            ) {
+                const error = [
+                    IMAGE_FETCH_UNSUPPORTED_CONTENT_TYPE_PREFIX,
+                    responseContentType,
+                ].join(': ');
+
+                return {
+                    error,
+                    success: false,
+                };
+            }
+
+            const contentType = responseContentType
                 || IMAGE_FETCH_DEFAULT_CONTENT_TYPE;
             const buffer = await response.arrayBuffer();
             const bytes = new Uint8Array(buffer);
-            let binary = '';
-
-            bytes.forEach((byte) => {
-                binary += String.fromCharCode(byte);
-            });
+            const base64 = MessageHandler.encodeBytesToBase64(bytes);
 
             return {
-                dataUrl: `data:${contentType};base64,${btoa(binary)}`,
+                dataUrl: `data:${contentType};base64,${base64}`,
                 success: true,
             };
         } catch (error) {
@@ -420,6 +450,74 @@ export class MessageHandler {
                 success: false,
             };
         }
+    }
+
+    /**
+     * Check whether a content-provided image URL may be fetched.
+     * @param url URL from content script
+     * @param pageUrl URL of page that requested the fetch
+     * @returns True when protocol is supported
+     */
+    static isAllowedImageFetchUrl(url: string, pageUrl?: string): boolean {
+        try {
+            const parsedUrl = new URL(url);
+            if (parsedUrl.protocol === IMAGE_LOCAL_FILE_PROTOCOL) {
+                return MessageHandler.getUrlProtocol(pageUrl)
+                    === IMAGE_LOCAL_FILE_PROTOCOL;
+            }
+            return IMAGE_URL_PROTOCOLS.has(parsedUrl.protocol);
+        } catch {
+            return false;
+        }
+    }
+
+    /**
+     * Parse a URL protocol.
+     * @param url URL to parse
+     * @returns Parsed protocol, or null for missing/invalid URLs
+     */
+    static getUrlProtocol(url?: string): string | null {
+        if (!url) {
+            return null;
+        }
+
+        try {
+            return new URL(url).protocol;
+        } catch {
+            return null;
+        }
+    }
+
+    /**
+     * Check whether a response content type advertises an image payload.
+     * @param contentType Response content type header
+     * @returns True when content type starts with image/
+     */
+    static isImageContentType(contentType: string): boolean {
+        return contentType
+            .toLowerCase()
+            .startsWith(IMAGE_CONTENT_TYPE_PREFIX);
+    }
+
+    /**
+     * Encode binary bytes without repeated full-string concatenation.
+     * @param bytes Image bytes
+     * @returns Base64 encoded payload
+     */
+    static encodeBytesToBase64(bytes: Uint8Array): string {
+        const binaryChunks: string[] = [];
+
+        for (
+            let offset = 0;
+            offset < bytes.length;
+            offset += IMAGE_BASE64_CHUNK_SIZE
+        ) {
+            binaryChunks.push(String.fromCharCode(
+                ...bytes.subarray(offset, offset + IMAGE_BASE64_CHUNK_SIZE),
+            ));
+        }
+
+        return btoa(binaryChunks.join(''));
     }
 
     /**
@@ -435,6 +533,7 @@ export class MessageHandler {
         (async () => {
             const response = await MessageHandler.fetchImageAsDataUrl(
                 message.url,
+                message.pageUrl,
             );
             sendResponse(response);
         })();

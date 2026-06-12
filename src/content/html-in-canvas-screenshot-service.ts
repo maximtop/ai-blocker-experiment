@@ -390,6 +390,7 @@ export class HtmlInCanvasScreenshotService {
     ): Promise<string | null> {
         const response: unknown = await chrome.runtime.sendMessage({
             action: ACTIONS.FETCH_IMAGE_AS_DATA_URL,
+            pageUrl: window.location.href,
             url,
         });
 

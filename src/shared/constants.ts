@@ -361,7 +361,6 @@ export const SCREENSHOT_CAPTURE_PATH = {
 export type ScreenshotCapturePath =
     typeof SCREENSHOT_CAPTURE_PATH[keyof typeof SCREENSHOT_CAPTURE_PATH];
 
-// FIXME not used anywhere, but should be used
 // Default value for saving screenshots to downloads
 export const DEFAULT_SAVE_SCREENSHOTS_TO_DOWNLOADS = false;
 

@@ -590,6 +590,8 @@ export class AutoScreenshotObserver {
     handleHtmlInCanvasFailure(element: Element, error: unknown): void {
         logger.warn(`HTML-in-Canvas capture failed: ${error}`);
         this.observedElements.delete(element);
+        this.registeredElements.delete(element);
+        this.elementCriteria.delete(element);
         BlurManager.unblur(element);
     }
 

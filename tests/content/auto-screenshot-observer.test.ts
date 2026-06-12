@@ -1,6 +1,7 @@
 import { afterEach, describe, expect, it, vi } from 'vitest';
 import { AutoScreenshotObserver } from '../../src/content/auto-screenshot-observer';
 import { HTML_IN_CANVAS_CONFIG } from '../../src/content/content-constants';
+import { RULE_TYPE } from '../../src/shared/constants';
 
 const TEST_VIEWPORT_HEIGHT = 100;
 const TEST_VIEWPORT_WIDTH = 100;
@@ -32,6 +33,15 @@ const TEST_OFFSCREEN_RECT = {
 const TEST_INTERNAL_SELECTOR = (
     `[${HTML_IN_CANVAS_CONFIG.CAPTURE_IGNORE_ATTRIBUTE}]`
 );
+const TEST_VISION_RULE = {
+    criteria: 'ad',
+    domains: [],
+    enabled: true,
+    id: 'rule-id',
+    ruleString: 'vision:.ad:ad',
+    selector: '.ad',
+    type: RULE_TYPE.VISION,
+};
 
 describe('AutoScreenshotObserver', () => {
     afterEach(() => {
@@ -105,5 +115,42 @@ describe('AutoScreenshotObserver', () => {
         );
 
         expect(fallbackSpy).not.toHaveBeenCalled();
+    });
+
+    it('should clear registration when primary capture fails', () => {
+        vi.stubGlobal('window', {
+            scrollY: 0,
+        });
+
+        const observer = new AutoScreenshotObserver();
+        const element = {
+            className: 'ad',
+            closest: () => null,
+            matches: (selector: string) => (
+                selector === TEST_VISION_RULE.selector
+            ),
+            tagName: 'DIV',
+        } as unknown as Element;
+        const enqueueSpy = vi.spyOn(
+            observer,
+            'enqueueHtmlInCanvasCapture',
+        ).mockImplementation(() => {});
+
+        Reflect.set(observer, 'combinedSelector', TEST_VISION_RULE.selector);
+        Reflect.set(observer, 'intersectionObserver', {
+            observe: vi.fn(),
+            unobserve: vi.fn(),
+        });
+        Reflect.set(observer, 'useHtmlInCanvasScreenshots', true);
+        Reflect.set(observer, 'visionRules', [TEST_VISION_RULE]);
+
+        observer.checkAndObserveElement(element);
+        observer.handleHtmlInCanvasFailure(
+            element,
+            new Error('HTML-in-Canvas API unavailable'),
+        );
+        observer.checkAndObserveElement(element);
+
+        expect(enqueueSpy).toHaveBeenCalledTimes(2);
     });
 });
