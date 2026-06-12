@@ -33,10 +33,38 @@ const REPEATED_MESSAGES = {
     UNKNOWN_ERROR: 'Unknown error',
 };
 
+const DOM_IDS = {
+    HTML_IN_CANVAS_SCREENSHOTS_CHECKBOX: 'htmlInCanvasScreenshotsCheckbox',
+} as const;
+
 /**
  * Status type for UI feedback
  */
 type StatusType = 'success' | 'error' | 'warning';
+
+/**
+ * Development settings collected from the options page.
+ */
+interface DevelopmentSettingsInput {
+    /** Whether debug logging is enabled */
+    debugLogging: boolean;
+    /** Whether screenshots are saved to Downloads */
+    saveScreenshotsToDownloads: boolean;
+    /** Whether HTML-in-Canvas capture is preferred */
+    useHtmlInCanvasScreenshots: boolean;
+}
+
+/**
+ * Development settings persisted from the options page.
+ */
+interface DevelopmentSettings {
+    /** Whether debug logging is enabled */
+    debugLogging: Settings['debugLogging'];
+    /** Whether screenshots are saved to Downloads */
+    saveScreenshotsToDownloads: Settings['saveScreenshotsToDownloads'];
+    /** Whether HTML-in-Canvas capture is preferred */
+    useHtmlInCanvasScreenshots: Settings['useHtmlInCanvasScreenshots'];
+}
 
 /**
  * Get human-readable provider label for UI display
@@ -90,6 +118,8 @@ export class Options {
 
     private saveScreenshotsCheckbox!: HTMLInputElement;
 
+    private htmlInCanvasScreenshotsCheckbox!: HTMLInputElement;
+
     private debugLoggingCheckbox!: HTMLInputElement;
 
     private saveBtn!: HTMLButtonElement;
@@ -99,6 +129,21 @@ export class Options {
     private clearCacheBtn!: HTMLButtonElement;
 
     private status!: HTMLDivElement;
+
+    /**
+     * Build development settings payload from checkbox values.
+     * @param input Development setting checkbox values
+     * @returns Development settings update
+     */
+    static buildDevelopmentSettings(
+        input: DevelopmentSettingsInput,
+    ): DevelopmentSettings {
+        return {
+            debugLogging: input.debugLogging,
+            saveScreenshotsToDownloads: input.saveScreenshotsToDownloads,
+            useHtmlInCanvasScreenshots: input.useHtmlInCanvasScreenshots,
+        };
+    }
 
     /**
      * Initialize the options manager and set up event listeners
@@ -116,6 +161,9 @@ export class Options {
             this.openrouterKeyInput = document.getElementById('openrouterKey') as HTMLInputElement;
             this.saveScreenshotsCheckbox = document.getElementById(
                 'saveScreenshotsCheckbox',
+            ) as HTMLInputElement;
+            this.htmlInCanvasScreenshotsCheckbox = document.getElementById(
+                DOM_IDS.HTML_IN_CANVAS_SCREENSHOTS_CHECKBOX,
             ) as HTMLInputElement;
             this.debugLoggingCheckbox = document.getElementById(
                 'debugLoggingCheckbox',
@@ -397,6 +445,9 @@ export class Options {
             // Load screenshot setting
             const shouldSave = settings.saveScreenshotsToDownloads;
             this.saveScreenshotsCheckbox.checked = shouldSave;
+            this.htmlInCanvasScreenshotsCheckbox.checked = (
+                settings.useHtmlInCanvasScreenshots
+            );
 
             // Load debug logging setting
             this.debugLoggingCheckbox.checked = settings.debugLogging;
@@ -547,9 +598,13 @@ export class Options {
             const settings: Partial<Settings> = {
                 openaiApiKey: openaiKey,
                 openrouterApiKey: openrouterKey,
-                saveScreenshotsToDownloads:
-                    this.saveScreenshotsCheckbox.checked,
-                debugLogging: this.debugLoggingCheckbox.checked,
+                ...Options.buildDevelopmentSettings({
+                    debugLogging: this.debugLoggingCheckbox.checked,
+                    saveScreenshotsToDownloads:
+                        this.saveScreenshotsCheckbox.checked,
+                    useHtmlInCanvasScreenshots:
+                        this.htmlInCanvasScreenshotsCheckbox.checked,
+                }),
             };
 
             // Only include embedding model if selected

@@ -5,10 +5,12 @@ import { format } from 'date-fns';
 import {
     ACTIONS,
     PORT_NAMES,
+    SCREENSHOT_CAPTURE_PATH,
     SCREENSHOT_CONFIG,
     SETTINGS_KEYS,
+    type ScreenshotCapturePath,
 } from '../shared/constants';
-import { createLogger } from '../shared/logger';
+import { createLogger, getErrorMessage } from '../shared/logger';
 import type {
     CropBounds,
     OffscreenRequestFor,
@@ -19,16 +21,27 @@ import { SettingsManager } from '../shared/settings';
 const logger = createLogger('ScreenshotService');
 
 /**
- * Screenshot capture result
+ * Screenshot capture result shared by visible-tab and HTML-in-Canvas paths.
  */
-interface CaptureResult {
-    success: boolean;
-    downloadId: number | null;
-    filename: string;
-    dataUrl: string;
+export interface CaptureResult {
+    /** Capture path that produced the image */
+    capturePath?: ScreenshotCapturePath;
+    /** Vision criteria used for analysis */
     criteria?: string;
-    visionAnalysis?: unknown;
+    /** PNG data URL used for downloads and vision analysis */
+    dataUrl: string;
+    /** Chrome download ID when screenshot saving is enabled */
+    downloadId: number | null;
+    /** Error message when capture fails */
     error?: string;
+    /** Reason why a fallback path was selected */
+    fallbackReason?: string;
+    /** Generated screenshot filename */
+    filename: string;
+    /** Whether capture succeeded */
+    success: boolean;
+    /** Optional vision analysis result added by message handler */
+    visionAnalysis?: unknown;
 }
 
 /**
@@ -320,6 +333,7 @@ export class ScreenshotService {
 
             return {
                 success: true,
+                capturePath: SCREENSHOT_CAPTURE_PATH.VISIBLE_TAB,
                 downloadId,
                 filename,
                 dataUrl,
@@ -329,10 +343,65 @@ export class ScreenshotService {
             logger.error('❌ Failed to capture and save screenshot:', error);
             return {
                 success: false,
+                capturePath: SCREENSHOT_CAPTURE_PATH.VISIBLE_TAB,
                 downloadId: null,
                 filename: '',
                 dataUrl: '',
-                error: (error as Error).message,
+                error: getErrorMessage(error),
+            };
+        }
+    }
+
+    /**
+     * Create a screenshot result from an already-rendered data URL.
+     * @param dataUrl Rendered screenshot data URL
+     * @param criteria Vision criteria for analysis
+     * @param capturePath Capture path that produced the image
+     * @param onCaptured Optional callback after screenshot is accepted
+     * @returns Result with filename, dataUrl, criteria, and optional download ID
+     */
+    static async createFromDataUrl(
+        dataUrl: string,
+        criteria: string,
+        capturePath: ScreenshotCapturePath,
+        onCaptured?: (filename: string) => void,
+    ): Promise<CaptureResult> {
+        try {
+            const filename = ScreenshotService.generateFilename();
+
+            if (onCaptured) {
+                onCaptured(filename);
+            }
+
+            let downloadId: number | null = null;
+            const shouldSave = await SettingsManager.get(
+                SETTINGS_KEYS.SAVE_SCREENSHOTS_TO_DOWNLOADS,
+            );
+
+            if (shouldSave) {
+                downloadId = await ScreenshotService.saveToDownloads(
+                    dataUrl,
+                    filename,
+                );
+            }
+
+            return {
+                success: true,
+                capturePath,
+                criteria,
+                dataUrl,
+                downloadId,
+                filename,
+            };
+        } catch (error) {
+            logger.error('Failed to create screenshot from data URL:', error);
+            return {
+                success: false,
+                capturePath,
+                dataUrl: '',
+                downloadId: null,
+                error: getErrorMessage(error),
+                filename: '',
             };
         }
     }

@@ -4,6 +4,7 @@ import {
     GROUND_TRUTH,
     GroundTruthLabel,
     PORT_NAMES,
+    SCREENSHOT_CAPTURE_PATH,
 } from '../shared/constants';
 import { createLogger } from '../shared/logger';
 import type {
@@ -12,10 +13,24 @@ import type {
     VisionRule,
 } from '../shared/rule-types';
 import { BlurManager } from './blur-manager';
-import { BLUR_MODE } from './content-constants';
+import {
+    BLUR_MODE,
+    HTML_IN_CANVAS_CONFIG,
+    VISION_RESULT_CONFIG,
+} from './content-constants';
 import { domObserver } from './dom-observer';
+import { HtmlInCanvasScreenshotService } from './html-in-canvas-screenshot-service';
 
 const logger = createLogger('AutoScreenshotObserver');
+
+const DEFAULT_CONFIDENCE = 0;
+const DEFAULT_CRITERIA = 'unknown';
+const DEFAULT_EXPLANATION = 'No explanation';
+const DEFAULT_FILENAME = 'unknown';
+const DISPLAY_PERCENT_DECIMALS = 1;
+const GROUND_TRUTH_ATTRIBUTE = 'data-ground-truth';
+const INTEGER_PERCENT_DECIMALS = 0;
+const PORT_DISCONNECTED_ERROR = 'Port disconnected';
 
 /**
  * Element bounds for screenshot capture
@@ -92,6 +107,16 @@ export class AutoScreenshotObserver {
      */
     private scrollVelocity: number;
 
+    /**
+     * Whether HTML-in-Canvas screenshots are preferred
+     */
+    private useHtmlInCanvasScreenshots: boolean;
+
+    /**
+     * Serializes HTML-in-Canvas captures to avoid many simultaneous DOM renders
+     */
+    private captureQueue: Promise<void>;
+
     constructor() {
         this.observedElements = new WeakSet();
         this.registeredElements = new WeakSet();
@@ -102,14 +127,21 @@ export class AutoScreenshotObserver {
         this.lastScrollY = window.scrollY;
         this.lastScrollTime = Date.now();
         this.scrollVelocity = 0;
+        this.useHtmlInCanvasScreenshots = false;
+        this.captureQueue = Promise.resolve();
     }
 
     /**
      * Initialize the observer and start watching for target elements
      * @param visionRules Array of vision rules from background
+     * @param useHtmlInCanvasScreenshots Whether to prefer HTML-in-Canvas capture
      */
-    init(visionRules: VisionRule[] = []): void {
+    init(
+        visionRules: VisionRule[] = [],
+        useHtmlInCanvasScreenshots = false,
+    ): void {
         logger.info('Initializing auto-screenshot observer');
+        this.useHtmlInCanvasScreenshots = useHtmlInCanvasScreenshots;
         this.visionRules = visionRules;
         this.buildCombinedSelector();
         logger.info(
@@ -191,6 +223,12 @@ export class AutoScreenshotObserver {
                 if (node.nodeType !== Node.ELEMENT_NODE) continue;
 
                 const element = node as Element;
+                if (
+                    AutoScreenshotObserver.isIgnoredCaptureElement(element)
+                ) {
+                    continue;
+                }
+
                 checkedCount += 1;
 
                 // Check the element itself
@@ -223,6 +261,12 @@ export class AutoScreenshotObserver {
                             + `${(element as HTMLElement).className || '(no class)'}`,
                         );
                         for (const childElement of Array.from(targetElements)) {
+                            if (
+                                AutoScreenshotObserver
+                                    .isIgnoredCaptureElement(childElement)
+                            ) {
+                                continue;
+                            }
                             matchedCount += 1;
                             this.checkAndObserveElement(childElement);
                         }
@@ -257,6 +301,11 @@ export class AutoScreenshotObserver {
             return;
         }
 
+        if (AutoScreenshotObserver.isIgnoredCaptureElement(element)) {
+            logger.debug('📸 Skipping internal screenshot staging element');
+            return;
+        }
+
         if (element.matches(this.combinedSelector)) {
             // Check if already registered with IntersectionObserver
             if (!this.registeredElements.has(element)) {
@@ -267,8 +316,12 @@ export class AutoScreenshotObserver {
 
                 if (matchedRule) {
                     this.elementCriteria.set(element, matchedRule.criteria);
-                    this.intersectionObserver.observe(element);
                     this.registeredElements.add(element);
+                    if (this.useHtmlInCanvasScreenshots) {
+                        this.enqueueHtmlInCanvasCapture(element);
+                    } else {
+                        this.intersectionObserver.observe(element);
+                    }
                     logger.info(
                         '📸 Started observing element '
                         + `${element.tagName}.${element.className} `
@@ -326,8 +379,20 @@ export class AutoScreenshotObserver {
         }
 
         Array.from(elements).forEach((element) => {
-            this.checkAndObserveElement(element);
+            if (!AutoScreenshotObserver.isIgnoredCaptureElement(element)) {
+                this.checkAndObserveElement(element);
+            }
         });
+    }
+
+    /**
+     * Check whether an element belongs to internal screenshot staging DOM.
+     * @param element Element to inspect
+     * @returns True when element or ancestor is marked as screenshot staging
+     */
+    static isIgnoredCaptureElement(element: Element): boolean {
+        const selector = `[${HTML_IN_CANVAS_CONFIG.CAPTURE_IGNORE_ATTRIBUTE}]`;
+        return element.closest(selector) !== null;
     }
 
     /**
@@ -384,6 +449,19 @@ export class AutoScreenshotObserver {
     }
 
     /**
+     * Check whether an element is fully inside the viewport.
+     * @param element Element to inspect
+     * @returns True when all element edges are inside viewport
+     */
+    static isElementFullyInViewport(element: Element): boolean {
+        const rect = element.getBoundingClientRect();
+        return rect.top >= 0
+            && rect.left >= 0
+            && rect.bottom <= window.innerHeight
+            && rect.right <= window.innerWidth;
+    }
+
+    /**
      * Handle element when it becomes fully visible
      * @param element Fully visible element
      */
@@ -398,11 +476,8 @@ export class AutoScreenshotObserver {
         logger.info('Element fully visible, capturing screenshot');
 
         // Check if element is still in viewport after waits
-        const rect = element.getBoundingClientRect();
-        const inViewport = rect.top >= 0
-            && rect.left >= 0
-            && rect.bottom <= window.innerHeight
-            && rect.right <= window.innerWidth;
+        const inViewport = AutoScreenshotObserver
+            .isElementFullyInViewport(element);
 
         if (!inViewport) {
             logger.info(
@@ -422,25 +497,7 @@ export class AutoScreenshotObserver {
         // Get the vision criteria for this element
         const criteria = this.elementCriteria.get(element) || 'unknown';
 
-        // Use element's innerText as cache key for simplicity
-        // TODO: Handle cases when multiple elements have the same innerText
-        // For now, we assume all elements for visual analysis have
-        // different innerText
-
-        // Extract ground truth label if present (for testing/benchmarking)
-        const groundTruthAttr = element.getAttribute('data-ground-truth');
-        const groundTruth = (
-            groundTruthAttr === GROUND_TRUTH.AD
-            || groundTruthAttr === GROUND_TRUTH.NOT_AD
-        )
-            ? (groundTruthAttr as GroundTruthLabel)
-            : undefined;
-
-        const innerText = (element as HTMLElement).innerText?.trim() || '';
-        const cacheInfo: CacheInfo = {
-            innerText,
-            groundTruth,
-        };
+        const cacheInfo = AutoScreenshotObserver.getCacheInfo(element);
 
         // Create a port connection for this screenshot capture
         // This maintains the element context without fragile innerText matching
@@ -448,15 +505,7 @@ export class AutoScreenshotObserver {
             name: PORT_NAMES.SCREENSHOT_CAPTURE,
         });
 
-        port.onMessage.addListener((message) => {
-            if (message.action === ACTIONS.SCREENSHOT_CAPTURED) {
-                logger.info(
-                    `📸 [${message.filename}] Screenshot captured via port, `
-                    + 'applying blur now',
-                );
-                BlurManager.blur(element, { mode: BLUR_MODE.ANALYZING });
-            }
-        });
+        this.registerScreenshotCapturedListener(port, element);
 
         // Start screenshot capture WITHOUT blur
         // The blur will be applied when SCREENSHOT_CAPTURED message arrives via port
@@ -473,68 +522,182 @@ export class AutoScreenshotObserver {
         // Clean up port connection
         port.disconnect();
 
-        // Handle vision analysis result
-        if (visionResult) {
-            const confidence = visionResult.confidence || 0;
-            const threshold = visionResult.threshold || 0.7;
-            const explanation = visionResult.explanation || 'No explanation';
-            const filename = visionResult.filename || 'unknown';
-
-            // Log detailed result
-            logger.info(
-                `📸 [${filename}] Vision analysis result received:`,
-            );
-            logger.info(
-                `📸 [${filename}] - Matches: ${visionResult.matches}`,
-            );
-            const confPct = (confidence * 100).toFixed(1);
-            logger.info(
-                `📸 [${filename}] - Confidence: ${confPct}%`,
-            );
-            logger.info(
-                `📸 [${filename}] - Threshold: ${(threshold * 100).toFixed(1)}%`,
-            );
-            logger.info(
-                `📸 [${filename}] - Explanation: ${explanation}`,
-            );
-
-            // Apply threshold check: both matches AND confidence >= threshold
-            const shouldBlock = visionResult.matches && confidence >= threshold;
-
-            if (shouldBlock) {
-                // Advertisement detected - update blocked mode
-                const scorePercent = (confidence * 100).toFixed(0);
-                const threshPercent = (threshold * 100).toFixed(0);
-                const label = `🚫 Ad Blocked ${scorePercent}% `
-                    + `(min: ${threshPercent}%)`;
-
-                BlurManager.blur(element, {
-                    mode: BLUR_MODE.BLOCKED,
-                    label,
-                });
-
-                logger.info(
-                    `📸 [${filename}] ❌ BLOCKED - Advertisement detected `
-                    + `(confidence: ${(confidence * 100).toFixed(1)}%, `
-                    + `threshold: ${(threshold * 100).toFixed(1)}%)`,
-                );
-            } else {
-                // Not an advertisement - remove blur
-                BlurManager.unblur(element);
-                logger.info(
-                    `📸 [${filename}] ✅ ALLOWED - Not an advertisement `
-                    + `(confidence: ${(confidence * 100).toFixed(1)}%, `
-                    + `threshold: ${(threshold * 100).toFixed(1)}%)`,
-                );
-            }
-        } else {
-            // No result - remove blur
-            BlurManager.unblur(element);
-            logger.info('No vision result, blur removed');
-        }
+        this.applyVisionResult(element, visionResult);
 
         // Stop observing this element
         this.intersectionObserver.unobserve(element);
+    }
+
+    /**
+     * Queue HTML-in-Canvas capture to avoid many simultaneous DOM renders.
+     * @param element Matched element
+     */
+    enqueueHtmlInCanvasCapture(element: Element): void {
+        this.captureQueue = this.captureQueue
+            .then(() => this.handleHtmlInCanvasElement(element))
+            .catch((error) => {
+                logger.error('HTML-in-Canvas screenshot capture failed:', error);
+            });
+    }
+
+    /**
+     * Capture visible or offscreen element using HTML-in-Canvas.
+     * @param element Matched element
+     */
+    async handleHtmlInCanvasElement(element: Element): Promise<void> {
+        if (this.observedElements.has(element)) {
+            return;
+        }
+
+        this.observedElements.add(element);
+        const criteria = this.elementCriteria.get(element) || DEFAULT_CRITERIA;
+        const cacheInfo = AutoScreenshotObserver.getCacheInfo(element);
+        const isVisible = AutoScreenshotObserver.isElementFullyInViewport(
+            element,
+        );
+
+        try {
+            const dataUrl = await HtmlInCanvasScreenshotService.capture(
+                element,
+            );
+            const port = chrome.runtime.connect({
+                name: PORT_NAMES.SCREENSHOT_CAPTURE,
+            });
+
+            try {
+                this.registerScreenshotCapturedListener(port, element);
+                const visionResult = await this.captureScreenshotWithDataUrl(
+                    dataUrl,
+                    criteria,
+                    cacheInfo,
+                    port,
+                    isVisible,
+                );
+                this.applyVisionResult(element, visionResult);
+            } finally {
+                port.disconnect();
+            }
+        } catch (error) {
+            this.handleHtmlInCanvasFailure(element, error);
+        }
+    }
+
+    /**
+     * Handle an HTML-in-Canvas capture failure without visible-tab fallback.
+     * @param element Element whose HTML-in-Canvas capture failed
+     * @param error Capture error
+     */
+    handleHtmlInCanvasFailure(element: Element, error: unknown): void {
+        logger.warn(`HTML-in-Canvas capture failed: ${error}`);
+        this.observedElements.delete(element);
+        this.registeredElements.delete(element);
+        this.elementCriteria.delete(element);
+        BlurManager.unblur(element);
+    }
+
+    /**
+     * Build cache metadata for vision analysis.
+     * @param element Element being analyzed
+     * @returns Cache metadata
+     */
+    static getCacheInfo(element: Element): CacheInfo {
+        const groundTruthAttr = element.getAttribute(GROUND_TRUTH_ATTRIBUTE);
+        const groundTruth = (
+            groundTruthAttr === GROUND_TRUTH.AD
+            || groundTruthAttr === GROUND_TRUTH.NOT_AD
+        )
+            ? groundTruthAttr
+            : undefined;
+        const innerText = (element as HTMLElement).innerText?.trim() || '';
+
+        return {
+            groundTruth,
+            innerText,
+        };
+    }
+
+    /**
+     * Listen for background capture acknowledgement and apply analyzing blur.
+     * @param port Runtime port
+     * @param element Element being captured
+     */
+    registerScreenshotCapturedListener(
+        port: chrome.runtime.Port,
+        element: Element,
+    ): void {
+        port.onMessage.addListener((message) => {
+            if (message.action === ACTIONS.SCREENSHOT_CAPTURED) {
+                logger.info(
+                    `📸 [${message.filename}] Screenshot captured via port, `
+                    + 'applying blur now',
+                );
+                BlurManager.blur(element, { mode: BLUR_MODE.ANALYZING });
+            }
+        });
+    }
+
+    /**
+     * Apply a vision result to a target element.
+     * @param element Target element
+     * @param visionResult Vision analysis result or null
+     */
+    applyVisionResult(
+        element: Element,
+        visionResult: VisionAnalysisResult | null,
+    ): void {
+        if (!visionResult) {
+            BlurManager.unblur(element);
+            logger.info('No vision result, blur removed');
+            return;
+        }
+
+        const confidence = visionResult.confidence || DEFAULT_CONFIDENCE;
+        const threshold = visionResult.threshold
+            || VISION_RESULT_CONFIG.DEFAULT_THRESHOLD;
+        const explanation = visionResult.explanation || DEFAULT_EXPLANATION;
+        const filename = visionResult.filename || DEFAULT_FILENAME;
+
+        logger.info(`📸 [${filename}] Vision analysis result received:`);
+        logger.info(`📸 [${filename}] - Matches: ${visionResult.matches}`);
+        const confPct = (
+            confidence * VISION_RESULT_CONFIG.PERCENT_MULTIPLIER
+        ).toFixed(DISPLAY_PERCENT_DECIMALS);
+        const thresholdPct = (
+            threshold * VISION_RESULT_CONFIG.PERCENT_MULTIPLIER
+        ).toFixed(DISPLAY_PERCENT_DECIMALS);
+        logger.info(`📸 [${filename}] - Confidence: ${confPct}%`);
+        logger.info(`📸 [${filename}] - Threshold: ${thresholdPct}%`);
+        logger.info(`📸 [${filename}] - Explanation: ${explanation}`);
+
+        const shouldBlock = visionResult.matches && confidence >= threshold;
+
+        if (shouldBlock) {
+            const scorePercent = (
+                confidence * VISION_RESULT_CONFIG.PERCENT_MULTIPLIER
+            ).toFixed(INTEGER_PERCENT_DECIMALS);
+            const threshPercent = (
+                threshold * VISION_RESULT_CONFIG.PERCENT_MULTIPLIER
+            ).toFixed(INTEGER_PERCENT_DECIMALS);
+            const label = `🚫 Ad Blocked ${scorePercent}% `
+                + `(min: ${threshPercent}%)`;
+
+            BlurManager.blur(element, {
+                mode: BLUR_MODE.BLOCKED,
+                label,
+            });
+
+            logger.info(
+                `📸 [${filename}] ❌ BLOCKED - Advertisement detected `
+                + `(confidence: ${confPct}%, threshold: ${thresholdPct}%)`,
+            );
+            return;
+        }
+
+        BlurManager.unblur(element);
+        logger.info(
+            `📸 [${filename}] ✅ ALLOWED - Not an advertisement `
+            + `(confidence: ${confPct}%, threshold: ${thresholdPct}%)`,
+        );
     }
 
     /**
@@ -607,27 +770,7 @@ export class AutoScreenshotObserver {
                 cacheInfo,
             });
 
-            // Wait for response via port
-            const response = await new Promise<ScreenshotResponse>((
-                resolve,
-                reject,
-            ) => {
-                const messageListener = (message: unknown) => {
-                    const msg = message as ScreenshotResponse;
-                    if (msg.success !== undefined) {
-                        port.onMessage.removeListener(messageListener);
-                        resolve(msg);
-                    }
-                };
-
-                const disconnectListener = () => {
-                    port.onMessage.removeListener(messageListener);
-                    reject(new Error('Port disconnected'));
-                };
-
-                port.onMessage.addListener(messageListener);
-                port.onDisconnect.addListener(disconnectListener);
-            });
+            const response = await this.waitForScreenshotResponse(port);
 
             if (response.success) {
                 logger.info(
@@ -650,6 +793,78 @@ export class AutoScreenshotObserver {
             logger.error('Failed to capture element screenshot:', error);
             return null;
         }
+    }
+
+    /**
+     * Send a pre-rendered screenshot data URL to background vision analysis.
+     * @param dataUrl Rendered screenshot data URL
+     * @param criteria Vision criteria for this element
+     * @param cacheInfo Cache information for stable identification
+     * @param port Port connection for receiving screenshot notifications
+     * @param targetVisible Whether visible-tab fallback would be valid
+     * @returns Vision analysis result or null
+     */
+    async captureScreenshotWithDataUrl(
+        dataUrl: string,
+        criteria: string,
+        cacheInfo: CacheInfo,
+        port: chrome.runtime.Port,
+        targetVisible: boolean,
+    ): Promise<VisionAnalysisResult | null> {
+        port.postMessage({
+            action: ACTIONS.CAPTURE_PAGE_SCREENSHOT,
+            cacheInfo,
+            capturePath: SCREENSHOT_CAPTURE_PATH.HTML_IN_CANVAS,
+            criteria,
+            dataUrl,
+            targetVisible,
+        });
+
+        const response = await this.waitForScreenshotResponse(port);
+
+        if (response.success && response.visionAnalysis) {
+            return {
+                ...response.visionAnalysis,
+                filename: response.filename,
+            };
+        }
+
+        if (!response.success) {
+            logger.error(`📸 Screenshot capture failed: ${response.error}`);
+        }
+
+        return null;
+    }
+
+    /**
+     * Wait for screenshot response on a runtime port.
+     * @param port Port connection
+     * @returns Screenshot response
+     */
+    waitForScreenshotResponse(
+        port: chrome.runtime.Port,
+    ): Promise<ScreenshotResponse> {
+        return new Promise<ScreenshotResponse>((resolve, reject) => {
+            let disconnectListener: () => void;
+
+            const messageListener = (message: unknown) => {
+                const msg = message as ScreenshotResponse;
+                if (msg.success !== undefined) {
+                    port.onMessage.removeListener(messageListener);
+                    port.onDisconnect.removeListener(disconnectListener);
+                    resolve(msg);
+                }
+            };
+
+            disconnectListener = () => {
+                port.onMessage.removeListener(messageListener);
+                port.onDisconnect.removeListener(disconnectListener);
+                reject(new Error(PORT_DISCONNECTED_ERROR));
+            };
+
+            port.onMessage.addListener(messageListener);
+            port.onDisconnect.addListener(disconnectListener);
+        });
     }
 
     /**

@@ -51,8 +51,10 @@ export function getModelId(modelName: string, provider: LLMProvider): string {
 const QWEN3_EMBEDDING_MODEL = 'text-embedding-qwen3-embedding-0.6b';
 const OPENAI_TEXT_EMBEDDING_3_LARGE = 'text-embedding-3-large';
 const GOOGLE_GEMMA_3N_E4B = 'google/gemma-3n-e4b';
-const GPT_5_NANO = 'gpt-5-nano';
-const GPT_5_MINI = 'gpt-5-mini';
+const GPT_5_4_NANO = 'gpt-5.4-nano';
+const GPT_5_4_MINI = 'gpt-5.4-mini';
+const LEGACY_GPT_5_NANO = 'gpt-5-nano';
+const LEGACY_GPT_5_MINI = 'gpt-5-mini';
 const CHROME_GEMINI_NANO = 'gemini-nano';
 const CHROME_GEMINI_NANO_VISION = 'gemini-nano-vision';
 const GOOGLE_GEMINI_2_5_FLASH = 'google/gemini-2.5-flash';
@@ -69,13 +71,33 @@ export const DEFAULT_EMBEDDING_MODEL = getModelId(
     LLM_PROVIDERS.OPENAI,
 );
 export const DEFAULT_PROMPT_MODEL = getModelId(
-    GPT_5_NANO,
+    GPT_5_4_NANO,
     LLM_PROVIDERS.OPENAI,
 );
 export const DEFAULT_VISION_MODEL = getModelId(
-    GPT_5_MINI,
+    GPT_5_4_MINI,
     LLM_PROVIDERS.OPENAI,
 );
+
+// Legacy model IDs kept only to migrate existing saved settings
+export const MODEL_ID_MIGRATIONS: Record<string, string> = {
+    [getModelId(LEGACY_GPT_5_NANO, LLM_PROVIDERS.OPENAI)]: getModelId(
+        GPT_5_4_NANO,
+        LLM_PROVIDERS.OPENAI,
+    ),
+    [getModelId(LEGACY_GPT_5_MINI, LLM_PROVIDERS.OPENAI)]: getModelId(
+        GPT_5_4_MINI,
+        LLM_PROVIDERS.OPENAI,
+    ),
+    [getModelId(LEGACY_GPT_5_NANO, LLM_PROVIDERS.OPENROUTER)]: getModelId(
+        GPT_5_4_NANO,
+        LLM_PROVIDERS.OPENROUTER,
+    ),
+    [getModelId(LEGACY_GPT_5_MINI, LLM_PROVIDERS.OPENROUTER)]: getModelId(
+        GPT_5_4_MINI,
+        LLM_PROVIDERS.OPENROUTER,
+    ),
+};
 
 /**
  * Model option structure
@@ -121,23 +143,23 @@ const GOOGLE_GEMMA_3N_E4B_LM_STUDIO = addId({
     provider: LLM_PROVIDERS.LMSTUDIO,
 });
 
-const GPT_5_NANO_OPEN_AI = addId({
-    name: GPT_5_NANO,
+const GPT_5_4_NANO_OPEN_AI = addId({
+    name: GPT_5_4_NANO,
     provider: LLM_PROVIDERS.OPENAI,
 });
 
-const OPENAI_GPT_5_NANO_OPEN_ROUTER = addId({
-    name: GPT_5_NANO,
+const OPENAI_GPT_5_4_NANO_OPEN_ROUTER = addId({
+    name: GPT_5_4_NANO,
     provider: LLM_PROVIDERS.OPENROUTER,
 });
 
-const GPT_5_MINI_OPEN_AI = addId({
-    name: GPT_5_MINI,
+const GPT_5_4_MINI_OPEN_AI = addId({
+    name: GPT_5_4_MINI,
     provider: LLM_PROVIDERS.OPENAI,
 });
 
-const OPENAI_GPT_5_MINI_OPEN_ROUTER = addId({
-    name: GPT_5_MINI,
+const OPENAI_GPT_5_4_MINI_OPEN_ROUTER = addId({
+    name: GPT_5_4_MINI,
     provider: LLM_PROVIDERS.OPENROUTER,
 });
 
@@ -166,10 +188,10 @@ export const ALL_MODELS = [
     TEXT_EMBEDDING_3_LARGE_OPEN_AI,
     GOOGLE_GEMINI_NANO_CHROME_PROMPT,
     GOOGLE_GEMMA_3N_E4B_LM_STUDIO,
-    GPT_5_NANO_OPEN_AI,
-    GPT_5_MINI_OPEN_AI,
-    OPENAI_GPT_5_MINI_OPEN_ROUTER,
-    OPENAI_GPT_5_NANO_OPEN_ROUTER,
+    GPT_5_4_NANO_OPEN_AI,
+    GPT_5_4_MINI_OPEN_AI,
+    OPENAI_GPT_5_4_MINI_OPEN_ROUTER,
+    OPENAI_GPT_5_4_NANO_OPEN_ROUTER,
     GOOGLE_GEMINI_2_5_FLASH_OPEN_ROUTER,
     GOOGLE_GEMINI_2_5_FLASH_LITE_OPEN_ROUTER,
     GOOGLE_GEMINI_NANO_VISION_CHROME_PROMPT,
@@ -199,8 +221,8 @@ export const EMBEDDING_MODELS: string[] = [
 export const PROMPT_MODELS: string[] = [
     GOOGLE_GEMINI_NANO_CHROME_PROMPT.id,
     GOOGLE_GEMMA_3N_E4B_LM_STUDIO.id,
-    GPT_5_NANO_OPEN_AI.id,
-    OPENAI_GPT_5_NANO_OPEN_ROUTER.id,
+    GPT_5_4_NANO_OPEN_AI.id,
+    OPENAI_GPT_5_4_NANO_OPEN_ROUTER.id,
     GOOGLE_GEMINI_2_5_FLASH_OPEN_ROUTER.id,
     GOOGLE_GEMINI_2_5_FLASH_LITE_OPEN_ROUTER.id,
     ANTHROPIC_CLAUDE_3_HAIKU_OPEN_ROUTER.id,
@@ -208,8 +230,8 @@ export const PROMPT_MODELS: string[] = [
 
 export const VISION_MODELS: string[] = [
     GOOGLE_GEMINI_NANO_VISION_CHROME_PROMPT.id,
-    GPT_5_MINI_OPEN_AI.id,
-    OPENAI_GPT_5_MINI_OPEN_ROUTER.id,
+    GPT_5_4_MINI_OPEN_AI.id,
+    OPENAI_GPT_5_4_MINI_OPEN_ROUTER.id,
     GOOGLE_GEMINI_2_5_FLASH_OPEN_ROUTER.id,
     GOOGLE_GEMINI_2_5_FLASH_LITE_OPEN_ROUTER.id,
     ANTHROPIC_CLAUDE_3_HAIKU_OPEN_ROUTER.id,
@@ -262,6 +284,7 @@ export const STORAGE_KEYS = {
     // General settings
     BLOCKING_ENABLED: 'blockingEnabled',
     SAVE_SCREENSHOTS_TO_DOWNLOADS: 'saveScreenshotsToDownloads',
+    USE_HTML_IN_CANVAS_SCREENSHOTS: 'useHtmlInCanvasScreenshots',
     // Cache keys (stores all LLM analysis: embeddings, prompts, vision)
     LLM_ANALYSIS_CACHE: 'llmAnalysisCache',
     LLM_CACHE_META: 'llmCacheMeta',
@@ -282,6 +305,7 @@ export const SETTINGS_KEYS = {
     VISION_THRESHOLD: 'visionThreshold',
     BLOCKING_ENABLED: 'blockingEnabled',
     SAVE_SCREENSHOTS_TO_DOWNLOADS: 'saveScreenshotsToDownloads',
+    USE_HTML_IN_CANVAS_SCREENSHOTS: 'useHtmlInCanvasScreenshots',
     DEBUG_LOGGING: 'debugLogging',
     AD_BLOCK_RULES: 'adBlockRules',
 } as const;
@@ -303,6 +327,7 @@ export const ACTIONS = {
     CLEAR_EMBEDDING_CACHE: 'clearEmbeddingCache',
     CROP_IMAGE: 'cropImage',
     DOWNLOAD_CANVAS_IMAGE: 'downloadCanvasImage',
+    FETCH_IMAGE_AS_DATA_URL: 'fetchImageAsDataUrl',
     GET_ALL_RULES: 'getAllRules',
     GET_BLOCKING_STATUS: 'getBlockingStatus',
     GET_RULES: 'getRules',
@@ -327,9 +352,23 @@ export const SCREENSHOT_CONFIG = {
     FILENAME_PREFIX: 'screenshot',
 } as const;
 
-// FIXME not used anywhere, but should be used
+// Screenshot capture path names shared by content and background scripts
+export const SCREENSHOT_CAPTURE_PATH = {
+    HTML_IN_CANVAS: 'htmlInCanvas',
+    VISIBLE_TAB: 'visibleTab',
+} as const;
+
+export type ScreenshotCapturePath =
+    typeof SCREENSHOT_CAPTURE_PATH[keyof typeof SCREENSHOT_CAPTURE_PATH];
+
 // Default value for saving screenshots to downloads
 export const DEFAULT_SAVE_SCREENSHOTS_TO_DOWNLOADS = false;
+
+// Default value for primary HTML-in-Canvas screenshots
+export const DEFAULT_USE_HTML_IN_CANVAS_SCREENSHOTS = true;
+
+// Default value for content blocking
+export const DEFAULT_BLOCKING_ENABLED = true;
 
 // Default value for debug logging (disabled to reduce console noise)
 export const DEFAULT_DEBUG_LOGGING = false;

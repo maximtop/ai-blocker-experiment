@@ -2,21 +2,41 @@
 
 import {
     ACTIONS,
-    GroundTruthLabel,
+    SCREENSHOT_CAPTURE_PATH,
     SETTINGS_KEYS,
+    type GroundTruthLabel,
+    type ScreenshotCapturePath,
 } from '../shared/constants';
 import { filterRulesByUrl } from '../shared/domain-matcher';
 import { createLogger, getErrorMessage } from '../shared/logger';
 import type { CropBounds } from '../shared/offscreen-messages';
 import type { Rule } from '../shared/rule-types';
 import { SettingsManager } from '../shared/settings';
-import { Settings } from '../shared/settings-schema';
+import type { Settings } from '../shared/settings-schema';
 
 import { LLMService } from './llm-service';
 import { RuleService } from './rule-service';
-import { ScreenshotService } from './screenshot-service';
+import {
+    type CaptureResult,
+    ScreenshotService,
+} from './screenshot-service';
 
 const logger = createLogger('MessageHandler');
+
+const DATA_URL_BASE64_INDEX = 1;
+const DATA_URL_SEPARATOR = ',';
+const IMAGE_BASE64_CHUNK_SIZE = 8192;
+const IMAGE_BYTES_PER_KILOBYTE = 1024;
+const IMAGE_CONTENT_TYPE_PREFIX = 'image/';
+const IMAGE_CONTENT_TYPE_HEADER = 'content-type';
+const IMAGE_FETCH_DEFAULT_CONTENT_TYPE = 'application/octet-stream';
+const IMAGE_FETCH_FAILED_PREFIX = 'Image fetch failed';
+const IMAGE_FETCH_UNSUPPORTED_CONTENT_TYPE_PREFIX = 'Unsupported image type';
+const IMAGE_FETCH_UNSUPPORTED_PROTOCOL_PREFIX = 'Unsupported image URL protocol';
+const IMAGE_LOCAL_FILE_PROTOCOL = 'file:';
+const IMAGE_URL_PROTOCOLS = new Set(['http:', 'https:']);
+const PERCENT_MULTIPLIER = 100;
+const UNKNOWN_CACHE_VALUE = 'unknown';
 
 /**
  * Element to be analyzed
@@ -53,6 +73,8 @@ export interface GetBlockingStatusResponse {
     blockingEnabled: boolean;
     /** Whether debug logging is enabled for content scripts */
     debugLogging: boolean;
+    /** Whether content scripts should attempt HTML-in-Canvas screenshots */
+    useHtmlInCanvasScreenshots: boolean;
 }
 
 export interface GetRulesResponse {
@@ -87,6 +109,12 @@ export interface GetThresholdsResponse {
 }
 
 export interface SetThresholdResponse {
+    success: boolean;
+}
+
+export interface ImageDataUrlResponse {
+    dataUrl?: string;
+    error?: string;
     success: boolean;
 }
 
@@ -170,9 +198,13 @@ export type MessageMap = {
     [ACTIONS.CAPTURE_PAGE_SCREENSHOT]: {
         message: {
             action: typeof ACTIONS.CAPTURE_PAGE_SCREENSHOT;
-            bounds?: unknown;
+            bounds?: CropBounds;
+            cacheInfo?: unknown;
+            capturePath?: ScreenshotCapturePath;
             criteria?: string;
-            cacheInfo?: unknown
+            dataUrl?: string;
+            fallbackReason?: string;
+            targetVisible?: boolean;
         };
         response: unknown;
     };
@@ -182,6 +214,14 @@ export type MessageMap = {
             dataUrl: string;
         };
         response: unknown;
+    };
+    [ACTIONS.FETCH_IMAGE_AS_DATA_URL]: {
+        message: {
+            action: typeof ACTIONS.FETCH_IMAGE_AS_DATA_URL;
+            pageUrl?: string;
+            url: string;
+        };
+        response: ImageDataUrlResponse;
     };
     [ACTIONS.ANALYZE_ELEMENTS]: {
         message: {
@@ -292,6 +332,9 @@ export class MessageHandler {
             case ACTIONS.DOWNLOAD_CANVAS_IMAGE:
                 return this.handleDownloadCanvasImage(message, sendResponse);
 
+            case ACTIONS.FETCH_IMAGE_AS_DATA_URL:
+                return this.handleFetchImageAsDataUrl(message, sendResponse);
+
             case ACTIONS.ANALYZE_ELEMENTS:
                 return this.handleAnalyzeElements(message, sendResponse);
 
@@ -316,16 +359,20 @@ export class MessageHandler {
                 const settings = await SettingsManager.get([
                     SETTINGS_KEYS.BLOCKING_ENABLED,
                     SETTINGS_KEYS.DEBUG_LOGGING,
+                    SETTINGS_KEYS.USE_HTML_IN_CANVAS_SCREENSHOTS,
                 ]);
                 logger.info(
                     '🔵 GET_BLOCKING_STATUS: Settings retrieved - '
                     + `blocking=${settings.blockingEnabled}, `
-                    + `debug=${settings.debugLogging}`,
+                    + `debug=${settings.debugLogging}, `
+                    + `htmlInCanvas=${settings.useHtmlInCanvasScreenshots}`,
                 );
                 const response = {
                     success: true,
                     blockingEnabled: settings.blockingEnabled,
                     debugLogging: settings.debugLogging,
+                    useHtmlInCanvasScreenshots:
+                        settings.useHtmlInCanvasScreenshots,
                 };
                 logger.info('🔵 GET_BLOCKING_STATUS: Sending response');
                 sendResponse(response);
@@ -336,10 +383,161 @@ export class MessageHandler {
                     success: false,
                     blockingEnabled: false,
                     debugLogging: false,
+                    useHtmlInCanvasScreenshots: false,
                 });
             }
         })();
         return true; // Async response
+    }
+
+    /**
+     * Fetch an image resource and convert it to a data URL.
+     * @param url Image URL to fetch
+     * @param pageUrl URL of page that requested the fetch
+     * @returns Data URL response
+     */
+    static async fetchImageAsDataUrl(
+        url: string,
+        pageUrl?: string,
+    ): Promise<ImageDataUrlResponse> {
+        try {
+            if (!MessageHandler.isAllowedImageFetchUrl(url, pageUrl)) {
+                return {
+                    error: IMAGE_FETCH_UNSUPPORTED_PROTOCOL_PREFIX,
+                    success: false,
+                };
+            }
+
+            const response = await fetch(url);
+            if (!response.ok) {
+                return {
+                    error: `${IMAGE_FETCH_FAILED_PREFIX}: ${response.status}`,
+                    success: false,
+                };
+            }
+
+            const responseContentType = response.headers.get(
+                IMAGE_CONTENT_TYPE_HEADER,
+            );
+            if (
+                responseContentType
+                && !MessageHandler.isImageContentType(responseContentType)
+            ) {
+                const error = [
+                    IMAGE_FETCH_UNSUPPORTED_CONTENT_TYPE_PREFIX,
+                    responseContentType,
+                ].join(': ');
+
+                return {
+                    error,
+                    success: false,
+                };
+            }
+
+            const contentType = responseContentType
+                || IMAGE_FETCH_DEFAULT_CONTENT_TYPE;
+            const buffer = await response.arrayBuffer();
+            const bytes = new Uint8Array(buffer);
+            const base64 = MessageHandler.encodeBytesToBase64(bytes);
+
+            return {
+                dataUrl: `data:${contentType};base64,${base64}`,
+                success: true,
+            };
+        } catch (error) {
+            return {
+                error: getErrorMessage(error),
+                success: false,
+            };
+        }
+    }
+
+    /**
+     * Check whether a content-provided image URL may be fetched.
+     * @param url URL from content script
+     * @param pageUrl URL of page that requested the fetch
+     * @returns True when protocol is supported
+     */
+    static isAllowedImageFetchUrl(url: string, pageUrl?: string): boolean {
+        try {
+            const parsedUrl = new URL(url);
+            if (parsedUrl.protocol === IMAGE_LOCAL_FILE_PROTOCOL) {
+                return MessageHandler.getUrlProtocol(pageUrl)
+                    === IMAGE_LOCAL_FILE_PROTOCOL;
+            }
+            return IMAGE_URL_PROTOCOLS.has(parsedUrl.protocol);
+        } catch {
+            return false;
+        }
+    }
+
+    /**
+     * Parse a URL protocol.
+     * @param url URL to parse
+     * @returns Parsed protocol, or null for missing/invalid URLs
+     */
+    static getUrlProtocol(url?: string): string | null {
+        if (!url) {
+            return null;
+        }
+
+        try {
+            return new URL(url).protocol;
+        } catch {
+            return null;
+        }
+    }
+
+    /**
+     * Check whether a response content type advertises an image payload.
+     * @param contentType Response content type header
+     * @returns True when content type starts with image/
+     */
+    static isImageContentType(contentType: string): boolean {
+        return contentType
+            .toLowerCase()
+            .startsWith(IMAGE_CONTENT_TYPE_PREFIX);
+    }
+
+    /**
+     * Encode binary bytes without repeated full-string concatenation.
+     * @param bytes Image bytes
+     * @returns Base64 encoded payload
+     */
+    static encodeBytesToBase64(bytes: Uint8Array): string {
+        const binaryChunks: string[] = [];
+
+        for (
+            let offset = 0;
+            offset < bytes.length;
+            offset += IMAGE_BASE64_CHUNK_SIZE
+        ) {
+            binaryChunks.push(String.fromCharCode(
+                ...bytes.subarray(offset, offset + IMAGE_BASE64_CHUNK_SIZE),
+            ));
+        }
+
+        return btoa(binaryChunks.join(''));
+    }
+
+    /**
+     * Handle FETCH_IMAGE_AS_DATA_URL action.
+     * @param message Message with image URL
+     * @param sendResponse Function to send response
+     * @returns True for async response
+     */
+    private handleFetchImageAsDataUrl(
+        message: MessageMap[typeof ACTIONS.FETCH_IMAGE_AS_DATA_URL]['message'],
+        sendResponse: (response?: unknown) => void,
+    ): boolean {
+        (async () => {
+            const response = await MessageHandler.fetchImageAsDataUrl(
+                message.url,
+                message.pageUrl,
+            );
+            sendResponse(response);
+        })();
+        return true;
     }
 
     /**
@@ -703,6 +901,128 @@ export class MessageHandler {
     }
 
     /**
+     * Create screenshot result from either pre-rendered data URL or tab capture.
+     * @param message Screenshot message
+     * @param tabId Tab ID for visible-tab capture
+     * @param onCaptured Callback after screenshot is available
+     * @returns Screenshot capture result
+     */
+    private async createScreenshotResult(
+        message: MessageMap[typeof ACTIONS.CAPTURE_PAGE_SCREENSHOT]['message'],
+        tabId: number,
+        onCaptured?: (filename: string) => void,
+    ): Promise<CaptureResult> {
+        if (message.dataUrl) {
+            return ScreenshotService.createFromDataUrl(
+                message.dataUrl,
+                message.criteria || '',
+                message.capturePath || SCREENSHOT_CAPTURE_PATH.HTML_IN_CANVAS,
+                onCaptured,
+            );
+        }
+
+        return ScreenshotService.captureAndSave(
+            tabId,
+            message.bounds || null,
+            message.criteria || '',
+            onCaptured,
+        );
+    }
+
+    /**
+     * Run vision analysis for a captured screenshot result.
+     * @param result Screenshot capture result to enrich
+     * @param cacheInfo Cache metadata from content script
+     * @returns Screenshot result with optional vision analysis
+     */
+    private async analyzeScreenshotResult(
+        result: CaptureResult,
+        cacheInfo: Record<string, unknown>,
+    ): Promise<CaptureResult> {
+        logger.info(
+            `📸 [${result.filename || UNKNOWN_CACHE_VALUE}] Vision check: `
+            + `success=${result.success}, `
+            + `criteria=${!!result.criteria}, `
+            + `dataUrl=${!!result.dataUrl}, `
+            + `dataUrlLength=${result.dataUrl?.length || 0}`,
+        );
+
+        const { criteria, dataUrl } = result;
+        if (!result.success || !criteria || !dataUrl) {
+            logger.warn(
+                `📸 [${result.filename || UNKNOWN_CACHE_VALUE}] `
+                + 'Skipping vision analysis - missing required data',
+            );
+            return result;
+        }
+
+        try {
+            const pageUrl = cacheInfo.pageUrl || UNKNOWN_CACHE_VALUE;
+            const selector = cacheInfo.selector || UNKNOWN_CACHE_VALUE;
+            const index = cacheInfo.index || 0;
+            const cacheId = `${pageUrl}:${selector}:${index}`;
+            const startMsg = `📸 [${result.filename}] `
+                + 'Starting vision analysis for element: '
+                + `${cacheId}, criteria: `
+                + `'${criteria}'`;
+            logger.info(startMsg);
+            const sizeKb = (dataUrl.length / IMAGE_BYTES_PER_KILOBYTE)
+                .toFixed(2);
+            const sizeMsg = `📸 [${result.filename}] `
+                + `Image data size: ${sizeKb} KB`;
+            logger.info(sizeMsg);
+
+            const base64Parts = dataUrl.split(DATA_URL_SEPARATOR);
+            const base64Data = base64Parts[DATA_URL_BASE64_INDEX] || '';
+            const parsed = await this.llm.analyzeByImage(
+                base64Data,
+                criteria,
+                cacheInfo,
+            );
+            const confPct = (parsed.confidence * PERCENT_MULTIPLIER)
+                .toFixed(1);
+            const thrPct = (this.llm.visionThreshold * PERCENT_MULTIPLIER)
+                .toFixed(1);
+
+            const status = parsed.matches ? 'blocked' : 'allowed';
+            const resultGroup = `📸 [${result.filename}] `
+                + `Vision result: ${status}`;
+            const resultDetails = `Confidence: ${confPct}%\n`
+                + `Threshold: ${thrPct}%\n`
+                + `Explanation: ${parsed.explanation}\n`
+                + `Provider: ${parsed.provider}\n`
+                + `Cached: ${parsed.cached}`;
+
+            /* eslint-disable no-console */
+            console.groupCollapsed(resultGroup);
+            console.log(resultDetails);
+            console.groupEnd();
+            /* eslint-enable no-console */
+
+            return {
+                ...result,
+                visionAnalysis: {
+                    ...parsed,
+                    threshold: this.llm.visionThreshold,
+                },
+            };
+        } catch (error) {
+            const logMsg = `📸 [${result.filename}] Vision analysis failed:`;
+            logger.error(logMsg, error);
+            const errMsg = `Analysis error: ${getErrorMessage(error)}`;
+            return {
+                ...result,
+                visionAnalysis: {
+                    matches: false,
+                    confidence: 0,
+                    threshold: this.llm.visionThreshold,
+                    explanation: errMsg,
+                },
+            };
+        }
+    }
+
+    /**
      * Handle CAPTURE_PAGE_SCREENSHOT action
      * @param message Message with screenshot parameters
      * @param sendResponse Function to send response
@@ -726,90 +1046,19 @@ export class MessageHandler {
                     return;
                 }
 
-                const result = await ScreenshotService.captureAndSave(
+                const result = await this.createScreenshotResult(
+                    message,
                     tab[0].id,
-                    (message.bounds as CropBounds) || null,
-                    message.criteria || '',
+                );
+                const cacheInfo = (
+                    message.cacheInfo as Record<string, unknown>
+                ) || {};
+                const analyzedResult = await this.analyzeScreenshotResult(
+                    result,
+                    cacheInfo,
                 );
 
-                // Perform vision analysis if criteria provided
-                const hasVisionData = result.success
-                    && result.criteria
-                    && result.dataUrl;
-                if (hasVisionData) {
-                    try {
-                        const cacheInfo = (message.cacheInfo as Record<
-                        string,
-                        unknown
-                        >) || {};
-                        const pageUrl = cacheInfo.pageUrl
-                            || 'unknown';
-                        const selector = cacheInfo.selector
-                            || 'unknown';
-                        const index = cacheInfo.index || 0;
-                        const cacheId = `${pageUrl}:`
-                            + `${selector}:${index}`;
-                        const startMsg = `📸 [${result.filename}] `
-                            + 'Starting vision analysis for element: '
-                            + `${cacheId}, criteria: `
-                            + `'${result.criteria}'`;
-                        logger.info(startMsg);
-                        const sizeKb = (result.dataUrl.length / 1024)
-                            .toFixed(2);
-                        const sizeMsg = `📸 [${result.filename}] `
-                            + `Image data size: ${sizeKb} KB`;
-                        logger.info(sizeMsg);
-                        // Extract base64 from data URL
-                        const base64Parts = result.dataUrl.split(',');
-                        const base64Data = base64Parts[1] || '';
-                        const criteria = result.criteria || '';
-                        const parsed = await this.llm
-                            .analyzeByImage(
-                                base64Data,
-                                criteria,
-                                cacheInfo,
-                            );
-                        const confPct = (parsed.confidence * 100)
-                            .toFixed(1);
-                        const thrPct = (this.llm.visionThreshold
-                            * 100).toFixed(1);
-
-                        const status = parsed.matches ? 'blocked' : 'allowed';
-                        const resultGroup = `📸 [${result.filename}] `
-                            + `Vision result: ${status}`;
-                        const resultDetails = `Confidence: ${confPct}%\n`
-                            + `Threshold: ${thrPct}%\n`
-                            + `Explanation: ${parsed.explanation}\n`
-                            + `Provider: ${parsed.provider}\n`
-                            + `Cached: ${parsed.cached}`;
-
-                        /* eslint-disable no-console */
-                        console.groupCollapsed(resultGroup);
-                        console.log(resultDetails);
-                        console.groupEnd();
-                        /* eslint-enable no-console */
-
-                        // Add analysis to result with threshold
-                        result.visionAnalysis = {
-                            ...parsed,
-                            threshold: this.llm.visionThreshold,
-                        };
-                    } catch (error) {
-                        const logMsg = `📸 [${result.filename}] `
-                            + 'Vision analysis failed:';
-                        logger.error(logMsg, error);
-                        const errMsg = 'Analysis error: '
-                            + `${getErrorMessage(error)}`;
-                        result.visionAnalysis = {
-                            matches: false,
-                            confidence: 0,
-                            threshold: this.llm.visionThreshold,
-                            explanation: errMsg,
-                        };
-                    }
-                }
-
-                sendResponse(result);
+                sendResponse(analyzedResult);
             } catch (error) {
                 logger.error('Error capturing screenshot:', error);
                 sendResponse({
@@ -833,10 +1082,9 @@ export class MessageHandler {
         tabId: number,
     ): Promise<void> {
         try {
-            const result = await ScreenshotService.captureAndSave(
+            const result = await this.createScreenshotResult(
+                message,
                 tabId,
-                (message.bounds as CropBounds) || null,
-                message.criteria || '',
                 (filename: string) => {
                     // Notify content script that screenshot is captured
                     // This allows blur to be applied immediately
@@ -846,101 +1094,15 @@ export class MessageHandler {
                     });
                 },
             );
-
-            // Perform vision analysis if criteria provided
-            logger.info(
-                `📸 [${result.filename || 'unknown'}] Vision check: `
-                + `success=${result.success}, `
-                + `criteria=${!!result.criteria}, `
-                + `dataUrl=${!!result.dataUrl}, `
-                + `dataUrlLength=${result.dataUrl?.length || 0}`,
+            const cacheInfo = (
+                message.cacheInfo as Record<string, unknown>
+            ) || {};
+            const analyzedResult = await this.analyzeScreenshotResult(
+                result,
+                cacheInfo,
             );
 
-            const hasVisionData = result.success
-                && result.criteria
-                && result.dataUrl;
-
-            if (!hasVisionData) {
-                logger.warn(
-                    `📸 [${result.filename || 'unknown'}] `
-                    + 'Skipping vision analysis - missing required data',
-                );
-            }
-
-            if (hasVisionData) {
-                try {
-                    const cacheInfo = (message.cacheInfo as Record<
-                    string,
-                    unknown
-                    >) || {};
-                    const pageUrl = cacheInfo.pageUrl
-                        || 'unknown';
-                    const selector = cacheInfo.selector
-                        || 'unknown';
-                    const index = cacheInfo.index || 0;
-                    const cacheId = `${pageUrl}:`
-                        + `${selector}:${index}`;
-                    const startMsg = `📸 [${result.filename}] `
-                        + 'Starting vision analysis for element: '
-                        + `${cacheId}, criteria: `
-                        + `'${result.criteria}'`;
-                    logger.info(startMsg);
-                    const sizeKb = (result.dataUrl.length / 1024)
-                        .toFixed(2);
-                    const sizeMsg = `📸 [${result.filename}] `
-                        + `Image data size: ${sizeKb} KB`;
-                    logger.info(sizeMsg);
-                    // Extract base64 from data URL
-                    const base64Parts = result.dataUrl.split(',');
-                    const base64Data = base64Parts[1] || '';
-                    const criteria = result.criteria || '';
-                    const parsed = await this.llm
-                        .analyzeByImage(
-                            base64Data,
-                            criteria,
-                            cacheInfo,
-                        );
-                    const confPct = (parsed.confidence * 100)
-                        .toFixed(1);
-                    const thrPct = (this.llm.visionThreshold
-                        * 100).toFixed(1);
-
-                    const status = parsed.matches ? 'blocked' : 'allowed';
-                    const resultGroup = `📸 [${result.filename}] `
-                        + `Vision result: ${status}`;
-                    const resultDetails = `Confidence: ${confPct}%\n`
-                        + `Threshold: ${thrPct}%\n`
-                        + `Explanation: ${parsed.explanation}\n`
-                        + `Provider: ${parsed.provider}\n`
-                        + `Cached: ${parsed.cached}`;
-
-                    /* eslint-disable no-console */
-                    console.groupCollapsed(resultGroup);
-                    console.log(resultDetails);
-                    console.groupEnd();
-                    /* eslint-enable no-console */
-
-                    // Add analysis to result with threshold
-                    result.visionAnalysis = {
-                        ...parsed,
-                        threshold: this.llm.visionThreshold,
-                    };
-                } catch (error) {
-                    const logMsg = `📸 [${result.filename}] `
-                        + 'Vision analysis failed:';
-                    logger.error(logMsg, error);
-                    const errMsg = 'Analysis error: '
-                        + `${getErrorMessage(error)}`;
-                    result.visionAnalysis = {
-                        matches: false,
-                        confidence: 0,
-                        threshold: this.llm.visionThreshold,
-                        explanation: errMsg,
-                    };
-                }
-            }
-
-            port.postMessage(result);
+            port.postMessage(analyzedResult);
         } catch (error) {
             logger.error('Error capturing screenshot:', error);
             port.postMessage({
