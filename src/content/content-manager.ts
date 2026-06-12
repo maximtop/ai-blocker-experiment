@@ -38,13 +38,18 @@ class ContentManager {
     /**
      * Initialize auto-screenshot observer with vision rules
      * @param visionRules Array of vision rules
+     * @param useHtmlInCanvasScreenshots Whether to prefer HTML-in-Canvas capture
      */
     initializeAutoScreenshotObserver(
         visionRules: VisionRule[],
+        useHtmlInCanvasScreenshots: boolean,
     ): void {
         if (!this.autoScreenshotObserver) {
             this.autoScreenshotObserver = new AutoScreenshotObserver();
-            this.autoScreenshotObserver.init(visionRules);
+            this.autoScreenshotObserver.init(
+                visionRules,
+                useHtmlInCanvasScreenshots,
+            );
         }
     }
 
@@ -65,7 +70,8 @@ class ContentManager {
             logger.info(
                 '🔴 Content: Blocking status received - '
                 + `blocking=${statusResponse.blockingEnabled}, `
-                + `debug=${statusResponse.debugLogging}`,
+                + `debug=${statusResponse.debugLogging}, `
+                + `htmlInCanvas=${statusResponse.useHtmlInCanvasScreenshots}`,
             );
 
             // Set debug logging state from background response
@@ -113,7 +119,10 @@ class ContentManager {
             this.initializeContentAnalyzer(analysisRules);
 
             // Initialize auto-screenshot observer with vision rules
-            this.initializeAutoScreenshotObserver(visionRules);
+            this.initializeAutoScreenshotObserver(
+                visionRules,
+                statusResponse.useHtmlInCanvasScreenshots,
+            );
         } catch (error) {
             logger.error('Failed to initialize content scripts:', error);
         }

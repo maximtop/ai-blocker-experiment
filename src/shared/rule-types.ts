@@ -2,7 +2,7 @@
  * Shared rule type definitions used across background and content scripts
  */
 
-import type { RuleType } from './constants';
+import type { RuleType, ScreenshotCapturePath } from './constants';
 import { RULE_TYPE } from './constants';
 
 /**
@@ -93,10 +93,18 @@ export interface MessageResponse {
  * Screenshot response from background
  */
 export interface ScreenshotResponse {
-    success?: boolean;
-    filename?: string;
-    visionAnalysis?: VisionAnalysisResult;
+    /** Capture path that produced the screenshot */
+    capturePath?: ScreenshotCapturePath;
+    /** Error message when capture or analysis fails */
     error?: string;
+    /** Reason why the capture path fell back to another path */
+    fallbackReason?: string;
+    /** Generated screenshot filename */
+    filename?: string;
+    /** Whether screenshot capture succeeded */
+    success?: boolean;
+    /** Optional vision analysis result */
+    visionAnalysis?: VisionAnalysisResult;
 }
 
 /**

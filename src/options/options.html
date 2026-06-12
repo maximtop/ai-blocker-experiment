@@ -363,6 +363,15 @@
       </div>
       <div class="form-group">
         <label style="display: flex; align-items: center; cursor: pointer;">
+          <input type="checkbox" id="htmlInCanvasScreenshotsCheckbox" style="width: auto; margin-right: 10px;">
+          <span>Use HTML-in-Canvas element screenshots</span>
+        </label>
+        <div class="help-text">
+          Primary screenshot path for visible and offscreen matches when Chrome exposes HTML-in-Canvas. For extension testing, use Chrome Canary 149 or later with chrome://flags/#canvas-draw-element enabled.
+        </div>
+      </div>
+      <div class="form-group">
+        <label style="display: flex; align-items: center; cursor: pointer;">
           <input type="checkbox" id="debugLoggingCheckbox" style="width: auto; margin-right: 10px;">
           <span>Enable debug logging in content scripts</span>
         </label>

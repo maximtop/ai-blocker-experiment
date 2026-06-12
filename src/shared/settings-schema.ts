@@ -1,12 +1,16 @@
 import * as v from 'valibot';
 import {
+    DEFAULT_BLOCKING_ENABLED,
     DEFAULT_DEBUG_LOGGING,
     DEFAULT_EMBEDDING_MODEL,
     DEFAULT_EMBEDDING_THRESHOLD,
     DEFAULT_PROMPT_MODEL,
     DEFAULT_PROMPT_THRESHOLD,
+    DEFAULT_SAVE_SCREENSHOTS_TO_DOWNLOADS,
+    DEFAULT_USE_HTML_IN_CANVAS_SCREENSHOTS,
     DEFAULT_VISION_MODEL,
     DEFAULT_VISION_THRESHOLD,
+    MODEL_ID_MIGRATIONS,
 } from './constants';
 
 /**
@@ -28,11 +32,18 @@ export const settingsSchema = v.object({
     visionThreshold: v.optional(v.number(), DEFAULT_VISION_THRESHOLD),
 
     // General settings
-    blockingEnabled: v.optional(v.boolean(), true),
+    blockingEnabled: v.optional(v.boolean(), DEFAULT_BLOCKING_ENABLED),
 
     // Development options
-    saveScreenshotsToDownloads: v.optional(v.boolean(), false),
     debugLogging: v.optional(v.boolean(), DEFAULT_DEBUG_LOGGING),
+    saveScreenshotsToDownloads: v.optional(
+        v.boolean(),
+        DEFAULT_SAVE_SCREENSHOTS_TO_DOWNLOADS,
+    ),
+    useHtmlInCanvasScreenshots: v.optional(
+        v.boolean(),
+        DEFAULT_USE_HTML_IN_CANVAS_SCREENSHOTS,
+    ),
 
     // Ad blocking rules
     adBlockRules: v.optional(v.array(v.object({
@@ -58,9 +69,10 @@ export const DEFAULT_SETTINGS: Settings = {
     embeddingThreshold: DEFAULT_EMBEDDING_THRESHOLD,
     promptThreshold: DEFAULT_PROMPT_THRESHOLD,
     visionThreshold: DEFAULT_VISION_THRESHOLD,
-    blockingEnabled: true,
-    saveScreenshotsToDownloads: false,
+    blockingEnabled: DEFAULT_BLOCKING_ENABLED,
     debugLogging: DEFAULT_DEBUG_LOGGING,
+    saveScreenshotsToDownloads: DEFAULT_SAVE_SCREENSHOTS_TO_DOWNLOADS,
+    useHtmlInCanvasScreenshots: DEFAULT_USE_HTML_IN_CANVAS_SCREENSHOTS,
     adBlockRules: [],
 };
 
@@ -70,5 +82,21 @@ export const DEFAULT_SETTINGS: Settings = {
  * @returns Validated settings or default settings if validation fails
  */
 export function parseSettings(data: unknown): Settings {
-    return v.parse(settingsSchema, data);
+    const settings = v.parse(settingsSchema, data);
+
+    return {
+        ...settings,
+        embeddingModel: (
+            MODEL_ID_MIGRATIONS[settings.embeddingModel]
+            ?? settings.embeddingModel
+        ),
+        promptModel: (
+            MODEL_ID_MIGRATIONS[settings.promptModel]
+            ?? settings.promptModel
+        ),
+        visionModel: (
+            MODEL_ID_MIGRATIONS[settings.visionModel]
+            ?? settings.visionModel
+        ),
+    };
 }
