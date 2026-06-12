@@ -1,5 +1,9 @@
 import { afterEach, describe, expect, it, vi } from 'vitest';
-import { HTML_IN_CANVAS_ERROR } from '../../src/content/content-constants';
+import {
+    HTML_IN_CANVAS_CONFIG,
+    HTML_IN_CANVAS_ERROR,
+    HTML_IN_CANVAS_ERROR_MESSAGE,
+} from '../../src/content/content-constants';
 import { HtmlInCanvasScreenshotService } from '../../src/content/html-in-canvas-screenshot-service';
 
 const TEST_INVALID_RECT = {
@@ -15,6 +19,10 @@ const TEST_INVALID_RECT = {
 };
 const TEST_IMAGE_URL = 'file:///tmp/ad.png';
 const TEST_IMAGE_DATA_URL = 'data:image/png;base64,YWQ=';
+const TEST_SCREENSHOT_DATA_URL = 'data:image/png;base64,c2NyZWVuc2hvdA==';
+const TEST_CAPTURE_SIZE = 100;
+const TEST_LARGE_CAPTURE_SIZE = 4096;
+const TEST_TRANSLATE_TRANSFORM = 'matrix(1, 0, 0, 1, 10, 20)';
 
 interface TestImageElement {
     currentSrc: string;
@@ -23,6 +31,46 @@ interface TestImageElement {
     tagName: string;
     querySelectorAll: () => TestImageElement[];
 }
+
+interface TestElement {
+    appendChild?: (child: unknown) => void;
+    cloneNode: () => TestElement;
+    getBoundingClientRect: () => typeof TEST_CAPTURE_RECT;
+    querySelectorAll: () => TestElement[];
+    remove?: () => void;
+    setAttribute?: (name: string, value: string) => void;
+    style: Record<string, string>;
+    tagName: string;
+    toDataURL?: (format: string) => string;
+}
+
+interface TestCanvasNode extends TestElement {
+    getContext: () => Record<string, unknown>;
+    height?: number;
+    onpaint: (() => void) | null;
+    requestPaint: () => void;
+    width?: number;
+}
+
+const TEST_CAPTURE_RECT = {
+    bottom: TEST_CAPTURE_SIZE,
+    height: TEST_CAPTURE_SIZE,
+    left: 0,
+    right: TEST_CAPTURE_SIZE,
+    top: 0,
+    width: TEST_CAPTURE_SIZE,
+    x: 0,
+    y: 0,
+    toJSON: () => ({}),
+};
+
+const TEST_LARGE_CAPTURE_RECT = {
+    ...TEST_CAPTURE_RECT,
+    bottom: TEST_LARGE_CAPTURE_SIZE,
+    height: TEST_LARGE_CAPTURE_SIZE,
+    right: TEST_LARGE_CAPTURE_SIZE,
+    width: TEST_LARGE_CAPTURE_SIZE,
+};
 
 function createTestImageElement(src: string): TestImageElement {
     return {
@@ -34,8 +82,86 @@ function createTestImageElement(src: string): TestImageElement {
     };
 }
 
+function createTransformStub(): Pick<DOMMatrix, 'toString'> {
+    return {
+        toString: () => TEST_TRANSLATE_TRANSFORM,
+    };
+}
+
+function createCaptureElement(
+    rect = TEST_CAPTURE_RECT,
+): TestElement {
+    const clone: TestElement = {
+        cloneNode: () => clone,
+        getBoundingClientRect: () => rect,
+        querySelectorAll: () => [],
+        setAttribute: vi.fn(),
+        style: {},
+        tagName: 'DIV',
+    };
+
+    return {
+        cloneNode: () => clone,
+        getBoundingClientRect: () => rect,
+        querySelectorAll: () => [],
+        style: {},
+        tagName: 'DIV',
+    };
+}
+
+function stubCaptureEnvironment(
+    context: Record<string, unknown>,
+): void {
+    class TestCanvasElement {
+        requestPaint(): void {}
+    }
+    Object.defineProperty(TestCanvasElement.prototype, 'onpaint', {
+        value: null,
+    });
+    Object.defineProperty(TestCanvasElement.prototype, 'layoutSubtree', {
+        value: false,
+    });
+    class TestCanvasContext {
+        drawElementImage(): Pick<DOMMatrix, 'toString'> {
+            return createTransformStub();
+        }
+    }
+
+    vi.stubGlobal('HTMLCanvasElement', TestCanvasElement);
+    vi.stubGlobal('CanvasRenderingContext2D', TestCanvasContext);
+    vi.stubGlobal('devicePixelRatio', 1);
+    vi.stubGlobal('getComputedStyle', () => ({
+        getPropertyValue: () => '',
+        [Symbol.iterator]: function* iterator() {},
+    }));
+    const createCanvasNode = (): TestCanvasNode => ({
+        appendChild: vi.fn(),
+        cloneNode: () => createCanvasNode(),
+        getBoundingClientRect: () => TEST_CAPTURE_RECT,
+        getContext: () => context,
+        onpaint: null,
+        querySelectorAll: () => [],
+        remove: vi.fn(),
+        requestPaint() {
+            this.onpaint?.();
+        },
+        setAttribute: vi.fn(),
+        style: {},
+        tagName: 'CANVAS',
+        toDataURL: () => TEST_SCREENSHOT_DATA_URL,
+    });
+
+    vi.stubGlobal('document', {
+        body: {
+            appendChild: vi.fn(),
+        },
+        createElement: () => createCanvasNode(),
+    });
+}
+
 describe('HtmlInCanvasScreenshotService', () => {
     afterEach(() => {
+        vi.restoreAllMocks();
         vi.unstubAllGlobals();
     });
 
@@ -60,8 +186,8 @@ describe('HtmlInCanvasScreenshotService', () => {
             value: false,
         });
         class TestCanvasContext {
-            drawElementImage(): DOMMatrix {
-                return new DOMMatrix();
+            drawElementImage(): Pick<DOMMatrix, 'toString'> {
+                return createTransformStub();
             }
         }
 
@@ -82,8 +208,8 @@ describe('HtmlInCanvasScreenshotService', () => {
             value: false,
         });
         class TestCanvasContext {
-            drawElementImage(): DOMMatrix {
-                return new DOMMatrix();
+            drawElementImage(): Pick<DOMMatrix, 'toString'> {
+                return createTransformStub();
             }
         }
 
@@ -131,5 +257,64 @@ describe('HtmlInCanvasScreenshotService', () => {
             clone as unknown as HTMLElement,
             fetchImageAsDataUrl,
         )).rejects.toThrow('Image resource could not be inlined');
+    });
+
+    it('should fall back when canvas context reset is unavailable', async () => {
+        const context = {
+            clearRect: vi.fn(),
+            drawElementImage: vi.fn(() => createTransformStub()),
+            getImageData: vi.fn(() => ({
+                data: Uint8ClampedArray.from([0, 0, 0, 255]),
+            })),
+            setTransform: vi.fn(),
+        };
+        stubCaptureEnvironment(context);
+
+        const result = await HtmlInCanvasScreenshotService.capture(
+            createCaptureElement() as unknown as Element,
+        );
+
+        expect(result).toBe(TEST_SCREENSHOT_DATA_URL);
+        expect(context.setTransform).toHaveBeenCalledWith(1, 0, 0, 1, 0, 0);
+        expect(context.clearRect).toHaveBeenCalledWith(
+            0,
+            0,
+            TEST_CAPTURE_SIZE,
+            TEST_CAPTURE_SIZE,
+        );
+    });
+
+    it('should sample a bounded pixel grid when checking empty captures', async () => {
+        const context = {
+            clearRect: vi.fn(),
+            drawElementImage: vi.fn(() => createTransformStub()),
+            getImageData: vi.fn(() => ({
+                data: Uint8ClampedArray.from([0, 0, 0, 0]),
+            })),
+            reset: vi.fn(),
+        };
+        stubCaptureEnvironment(context);
+
+        await expect(HtmlInCanvasScreenshotService.capture(
+            createCaptureElement(TEST_LARGE_CAPTURE_RECT) as unknown as Element,
+        )).rejects.toThrow(HTML_IN_CANVAS_ERROR_MESSAGE.EMPTY_CAPTURE);
+
+        const expectedSampleCount = (
+            HTML_IN_CANVAS_CONFIG.EMPTY_IMAGE_SAMPLE_GRID_SIZE
+            * HTML_IN_CANVAS_CONFIG.EMPTY_IMAGE_SAMPLE_GRID_SIZE
+        );
+        expect(context.getImageData).toHaveBeenCalledTimes(expectedSampleCount);
+        expect(context.getImageData).toHaveBeenCalledWith(
+            0,
+            0,
+            1,
+            1,
+        );
+        expect(context.getImageData).toHaveBeenLastCalledWith(
+            TEST_LARGE_CAPTURE_SIZE - 1,
+            TEST_LARGE_CAPTURE_SIZE - 1,
+            1,
+            1,
+        );
     });
 });

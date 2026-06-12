@@ -23,6 +23,8 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 - Restrict HTML-in-Canvas image inlining to safe page-matched image responses
   and allow retry after capture failures.
+- Avoid unsupported canvas reset calls and full-bitmap reads during
+  HTML-in-Canvas empty-capture checks.
 
 [unreleased]: https://github.com/maximtop/ai-blocker-experiment/compare/v1.3.0...HEAD
 [v1.3.0]: https://github.com/maximtop/ai-blocker-experiment/releases/tag/v1.3.0

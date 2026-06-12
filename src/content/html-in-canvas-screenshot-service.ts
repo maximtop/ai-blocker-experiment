@@ -8,6 +8,11 @@ import {
 
 const logger = createLogger('HtmlInCanvasScreenshotService');
 
+const CANVAS_IDENTITY_SCALE = 1;
+const CANVAS_IDENTITY_SKEW = 0;
+const CANVAS_ORIGIN = 0;
+const IMAGE_DATA_SAMPLE_SIZE = 1;
+
 /**
  * Canvas element with HTML-in-Canvas fields.
  */
@@ -512,7 +517,7 @@ export class HtmlInCanvasScreenshotService {
             throw new Error(HTML_IN_CANVAS_ERROR.API_UNAVAILABLE);
         }
 
-        ctx.reset();
+        HtmlInCanvasScreenshotService.resetCanvasContext(ctx, canvas);
         const transform = ctx.drawElementImage(
             source,
             0,
@@ -532,6 +537,36 @@ export class HtmlInCanvasScreenshotService {
     }
 
     /**
+     * Reset a canvas context across stable and experimental browser builds.
+     * @param ctx Canvas context
+     * @param canvas Canvas whose bitmap should be cleared
+     */
+    private static resetCanvasContext(
+        ctx: CanvasRenderingContext2D,
+        canvas: HTMLCanvasElement,
+    ): void {
+        if (typeof ctx.reset === 'function') {
+            ctx.reset();
+            return;
+        }
+
+        ctx.setTransform(
+            CANVAS_IDENTITY_SCALE,
+            CANVAS_IDENTITY_SKEW,
+            CANVAS_IDENTITY_SKEW,
+            CANVAS_IDENTITY_SCALE,
+            CANVAS_ORIGIN,
+            CANVAS_ORIGIN,
+        );
+        ctx.clearRect(
+            CANVAS_ORIGIN,
+            CANVAS_ORIGIN,
+            canvas.width,
+            canvas.height,
+        );
+    }
+
+    /**
      * Detect fully transparent captures before sending them to vision analysis.
      * @param ctx Canvas context
      * @param canvas Staging canvas
@@ -542,24 +577,42 @@ export class HtmlInCanvasScreenshotService {
         canvas: HTMLCanvasElement,
     ): boolean {
         try {
-            const pixels = ctx.getImageData(
-                0,
-                0,
+            if (canvas.width <= 0 || canvas.height <= 0) {
+                return true;
+            }
+
+            const sampleColumns = Math.min(
                 canvas.width,
+                HTML_IN_CANVAS_CONFIG.EMPTY_IMAGE_SAMPLE_GRID_SIZE,
+            );
+            const sampleRows = Math.min(
                 canvas.height,
-            ).data;
-            const step = (
-                HTML_IN_CANVAS_CONFIG.RGBA_CHANNEL_COUNT
-                * HTML_IN_CANVAS_CONFIG.EMPTY_IMAGE_SAMPLE_STRIDE
+                HTML_IN_CANVAS_CONFIG.EMPTY_IMAGE_SAMPLE_GRID_SIZE,
             );
 
-            for (
-                let index = HTML_IN_CANVAS_CONFIG.ALPHA_CHANNEL_OFFSET;
-                index < pixels.length;
-                index += step
-            ) {
-                if ((pixels[index] ?? 0) > 0) {
-                    return false;
+            for (let row = 0; row < sampleRows; row += 1) {
+                for (let column = 0; column < sampleColumns; column += 1) {
+                    const x = HtmlInCanvasScreenshotService
+                        .getSampleCoordinate(
+                            column,
+                            sampleColumns,
+                            canvas.width,
+                        );
+                    const y = HtmlInCanvasScreenshotService
+                        .getSampleCoordinate(row, sampleRows, canvas.height);
+                    const pixel = ctx.getImageData(
+                        x,
+                        y,
+                        IMAGE_DATA_SAMPLE_SIZE,
+                        IMAGE_DATA_SAMPLE_SIZE,
+                    ).data;
+
+                    if (
+                        (pixel[HTML_IN_CANVAS_CONFIG.ALPHA_CHANNEL_OFFSET] ?? 0)
+                            > 0
+                    ) {
+                        return false;
+                    }
                 }
             }
 
@@ -568,5 +621,24 @@ export class HtmlInCanvasScreenshotService {
             logger.debug(`Could not inspect HTML-in-Canvas pixels: ${error}`);
             return false;
         }
+    }
+
+    /**
+     * Get a sampled coordinate distributed across a canvas axis.
+     * @param index Sample index
+     * @param sampleCount Number of samples on this axis
+     * @param size Canvas axis size
+     * @returns Pixel coordinate
+     */
+    private static getSampleCoordinate(
+        index: number,
+        sampleCount: number,
+        size: number,
+    ): number {
+        if (sampleCount <= 1) {
+            return CANVAS_ORIGIN;
+        }
+
+        return Math.floor((index * (size - 1)) / (sampleCount - 1));
     }
 }
