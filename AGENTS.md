@@ -51,7 +51,7 @@ image processing.
 .
 ├── manifest.json              # Chrome extension manifest
 ├── package.json               # npm scripts and dependency manifest
-├── Makefile                   # convenience wrappers for init/build/lint/test
+├── Makefile                   # local developer command wrappers
 ├── rollup.config.js           # extension bundle configuration
 ├── src/
 │   ├── background/            # service worker, rules, LLM, screenshots
@@ -75,12 +75,13 @@ image processing.
 ## Build And Test Commands
 
 - `make init` or `pnpm install` installs dependencies.
-- `make build` or `pnpm build` builds `dist/` and `dist/extension.zip`.
+- `make build` or `pnpm build` builds the unpacked Chrome extension in `dist/`.
+- `make package` or `pnpm package` also creates `dist/extension.zip`.
 - `make lint` or `pnpm lint` runs ESLint and `tsc --noEmit`.
 - `pnpm type-check` runs TypeScript only.
 - `make test` or `pnpm test` runs the full Vitest suite.
-- `pnpm dev` runs clean plus Rollup watch. It currently depends on
-  `build:watch`; confirm that script exists before relying on it.
+- `pnpm dev` builds once; `pnpm start` runs Rollup watch.
+- See `DEVELOPMENT.md` for the shared Make/pnpm command contract.
 
 No standalone formatter command is configured.
 
