@@ -1,5 +1,32 @@
 # Development Guide
 
+## Shared developer commands
+
+| Make | pnpm | Meaning |
+| --- | --- | --- |
+| `make install` | `pnpm install` | Install dependencies; `make setup` and `make init` are aliases. |
+| `make build [browser]` | `pnpm build [browser]` | Build once in development mode; Chrome by default. |
+| `make dev [browser]` | `pnpm dev [browser]` | Alias for the one-shot development build. |
+| `make start [browser]` | `pnpm start [browser]` | Watch development files; Chrome by default. |
+| `make release [browser]` | `pnpm release [browser]` | Build local production archives; all store targets by default. |
+| `make package [browser]` | `pnpm package [browser]` | Alias for local release packaging. |
+| `make check` | `pnpm check` | Static checks and automated tests, without store submission. |
+
+`make` defaults to `make build`. Pass at most one supported browser as an
+extra goal, for example `make build firefox`. Unknown targets fail before
+building. `lint`, `typecheck`, and `test` also have matching Make targets;
+`make validate` is a compatibility alias for `make check`.
+Store upload/publish commands and CI deployment workflows are separate:
+`release` and `package` never submit to a store or create a GitHub release.
+
+Rollup supports Chrome only. Load `dist/` as an unpacked extension.
+`release`/`package` also creates `dist/extension.zip`; ordinary builds no
+longer create an archive as an implicit postbuild side effect. This project
+uses the same unminified bundle for development and production; watch mode
+rebuilds it, and release adds the local store archive. ZIP byte reproducibility
+is not promised by the existing zip-based packager.
+
+
 ## Table of Contents
 
 - [Prerequisites](#prerequisites)
@@ -85,8 +112,8 @@ Equivalent command:
 pnpm build
 ```
 
-This writes the unpacked extension to `dist/` and creates
-`dist/extension.zip`.
+This writes the unpacked extension to `dist/`. Run `make package` to also
+create `dist/extension.zip`.
 
 ### Load The Extension Locally
 
@@ -180,7 +207,7 @@ manifest version is injected from `package.json`.
 | Command | Purpose |
 | --- | --- |
 | `make init` | Install pnpm dependencies. |
-| `make build` | Build `dist/` and package `extension.zip`. |
+| `make build` | Build the unpacked extension in `dist/`. |
 | `make lint` | Run ESLint and TypeScript checks. |
 | `make test` | Run the Vitest suite. |
 
@@ -189,16 +216,15 @@ manifest version is injected from `package.json`.
 | Command | Purpose |
 | --- | --- |
 | `pnpm build` | Run Rollup build. |
-| `pnpm postbuild` | Zip `dist/` into `extension.zip`. |
+| `pnpm package` | Build and zip `dist/` into `extension.zip`. |
 | `pnpm clean` | Remove `dist/`. |
-| `pnpm dev` | Run clean plus build watch. See note below. |
+| `pnpm dev` | Run one development build. |
+| `pnpm start` | Run Rollup watch. |
 | `pnpm lint` | Run ESLint, then `pnpm type-check`. |
 | `pnpm type-check` | Run `tsc --noEmit`. |
 | `pnpm test` | Run `vitest run`. |
 
-`pnpm dev` currently references `pnpm build:watch`, but `build:watch` is not
-defined in `package.json`. Use `pnpm build` or add the missing script before
-relying on watch mode.
+Watch mode uses the same Rollup configuration as the one-shot build.
 
 ## Common Tasks
 
